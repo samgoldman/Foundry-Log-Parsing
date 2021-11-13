@@ -7,19 +7,6 @@ from message import Message
 
 MESSAGE_DELIMITER = "---------------------------"
 
-
-def speaker_count(messages):
-    count_by_speaker = {}
-
-    for message in messages:
-        speaker = message.get_speaker()
-        if speaker not in count_by_speaker:
-            count_by_speaker[speaker] = 0
-        count_by_speaker[speaker] += 1
-    
-    return count_by_speaker
-
-
 def parse_files(filename):
     message_lines = []
     messages = []
@@ -37,9 +24,6 @@ def parse_files(filename):
         messages.append(Message(message_lines))
 
     return messages
-
-
-
 
 dirname = sys.argv[1]
 filenames = [join(dirname, f) for f in listdir(dirname) if isfile(join(dirname, f))]
@@ -88,13 +72,7 @@ for (player, rolls) in rolls_by_player.items():
     prcnt_nat_20 = nat_20_count / num_rolls
     prcnt_nat_01 = nat_01_count / num_rolls
 
-    table.add_row([player, num_rolls, avg_raw_roll, avg_tot_roll, nat_20_count, f"{prcnt_nat_20*100:2.2}%", nat_01_count, f"{prcnt_nat_01*100:2.2}%"])
+    table.add_row([player, num_rolls, avg_raw_roll, avg_tot_roll, nat_20_count, f"{prcnt_nat_20:2.2%}", nat_01_count, f"{prcnt_nat_01:2.2%}"])
 
 table.reversesort = True
-print(table.get_string(sortby="Average Raw Roll"))
-
-
-
-
-
-
+print(table.get_string(sortby="Average Total Roll"))
