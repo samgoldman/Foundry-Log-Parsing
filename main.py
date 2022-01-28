@@ -51,7 +51,11 @@ d20_rolls = list(filter(lambda m: m.is_d20_roll(), unique_messages))
 print(f"Total d20 Rolls: {len(d20_rolls)}")
 
 for roll in d20_rolls:
-    player = speakers_to_player[roll.get_speaker()]
+    if roll.get_speaker() in speakers_to_player:
+        player = speakers_to_player[roll.get_speaker()]
+    else:
+        player = 'DM'
+        print(f"Warning: '{roll.get_speaker()}' was not found in the speaker assignments. Assigning to DM.")
 
     rolls_by_player[player].append(roll)
 
