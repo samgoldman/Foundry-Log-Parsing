@@ -50,11 +50,13 @@ with open(speaker_assignments_filename) as f:
 d20_rolls = list(filter(lambda m: m.is_d20_roll(), unique_messages))
 print(f"Total d20 Rolls: {len(d20_rolls)}")
 
+missing = set()
 for roll in d20_rolls:
     if roll.get_speaker() in speakers_to_player:
         player = speakers_to_player[roll.get_speaker()]
     else:
         player = 'DM'
+        missing.add(roll.get_speaker())
         print(f"Warning: '{roll.get_speaker()}' was not found in the speaker assignments. Assigning to DM.")
 
     rolls_by_player[player].append(roll)
@@ -80,3 +82,7 @@ for (player, rolls) in rolls_by_player.items():
 
 table.reversesort = True
 print(table.get_string(sortby="Average Total Roll"))
+
+if len(missing) > 0:
+    print()
+    print('Missing: ' + ','.join(missing))
