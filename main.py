@@ -10,11 +10,22 @@ MESSAGE_DELIMITER = "---------------------------"
 def parse_files(filename):
     message_lines = []
     messages = []
+
+    in_april = False
+
     with open(filename) as f:
         for line in f:
             line = line.strip()
             if line == MESSAGE_DELIMITER:
-                messages.append(Message(message_lines))
+                m = Message(message_lines)
+                
+                if "April" in m.get_message_text():
+                    in_april = not in_april
+                if in_april:
+                    message_lines.clear()
+                    continue
+
+                messages.append(m)
                 message_lines.clear()
             else:
                 message_lines.append(line)
