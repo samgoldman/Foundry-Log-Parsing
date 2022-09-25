@@ -38,7 +38,7 @@ def parse_files(filename):
 
 dirname = sys.argv[1]
 filenames = [join(dirname, f) for f in listdir(dirname) if isfile(join(dirname, f))]
-filenames = list(filter(lambda x: 'fvtt' in x, filenames))
+filenames = list(filter(lambda x: 'fvtt' in x.split("/")[-1], filenames))
 
 messages = []
 for filename in filenames:
@@ -55,11 +55,20 @@ with open(speaker_assignments_filename) as f:
         player = split[0]
         
         rolls_by_player[player] = []
+        first_escaped = None
         for s in split:
+            if s.startswith('"'):
+                first_escaped = s[1:]
+                continue
+            if s.endswith('"'):
+                speakers_to_player[first_escaped + ',' + s[:-1]] = player
+                continue
             speakers_to_player[s] = player
 
 d20_rolls = list(filter(lambda m: m.is_d20_roll(), unique_messages))
 print(f"Total d20 Rolls: {len(d20_rolls)}")
+
+rolls_by_player['All'] = []
 
 missing = set()
 for roll in d20_rolls:
@@ -71,12 +80,13 @@ for roll in d20_rolls:
         print(f"Warning: '{roll.get_speaker()}' was not found in the speaker assignments. Assigning to DM.")
 
     rolls_by_player[player].append(roll)
+    rolls_by_player['All'].append(roll)
 
 print()
 
 table = PrettyTable()
 
-table.field_names = ["Player", "Total Rolls", "Average Raw Roll", "Average Total Roll", "Natural 20s", "% Natural 20s", "Natural 1s", "% Natural 1s"]
+table.field_names = ["Player", "# Rolls", "Avg Raw Roll", "Avg w/ Mod", "Nat 20s", "% Nat 20s", "Nat 1s", "% Nat 1s", "# Adv", "Adv %", "# Dis", "Dis %", "# Save (# Death)", "Save %", "# Atk", "Atk %", "# Ability", "Ability %", "# Skill", "Skill %"]
 table.float_format["Average Raw Roll"] = "2.2"
 table.float_format["Average Total Roll"] = "2.2"
 
@@ -88,11 +98,25 @@ for (player, rolls) in rolls_by_player.items():
     nat_01_count = len(list(filter(lambda r: r.get_d20_value() ==  1, rolls)))
     prcnt_nat_20 = nat_20_count / num_rolls
     prcnt_nat_01 = nat_01_count / num_rolls
+    advantage_count = sum(map(lambda r: 1 if r.is_advantage() else 0, rolls))
+    prcnt_advantage = advantage_count / num_rolls
+    disadvantage_count = sum(map(lambda r: 1 if r.is_disadvantage() else 0, rolls))
+    prcnt_disadvantage = disadvantage_count / num_rolls
+    saving_throw_count = sum(map(lambda r: 1 if r.is_saving_throw() else 0, rolls))
+    death_save_count = sum(map(lambda r: 1 if r.is_death_save() else 0, rolls))
+    percent_saving_throw = saving_throw_count / num_rolls
+    attack_roll_count = sum(map(lambda r: 1 if r.is_attack_roll() else 0, rolls))
+    percent_attack_roll = attack_roll_count / num_rolls
+    skill_check_count = sum(map(lambda r: 1 if r.is_skill_check() else 0, rolls))
+    percent_skill_check = skill_check_count / num_rolls
+    ability_check_count = sum(map(lambda r: 1 if r.is_ability_check() else 0, rolls))
+    percent_ability_check = ability_check_count / num_rolls
 
-    table.add_row([player, num_rolls, avg_raw_roll, avg_tot_roll, nat_20_count, f"{prcnt_nat_20:2.2%}", nat_01_count, f"{prcnt_nat_01:2.2%}"])
+
+    table.add_row([player, num_rolls, f"{avg_raw_roll:.2f}", f"{avg_tot_roll:.2f}", nat_20_count, f"{prcnt_nat_20:2.2%}", nat_01_count, f"{prcnt_nat_01:2.2%}", advantage_count, f"{prcnt_advantage:2.2%}", disadvantage_count, f"{prcnt_disadvantage:2.2%}", f"{saving_throw_count} ({death_save_count})", f"{percent_saving_throw:2.2%}", attack_roll_count, f"{percent_attack_roll:2.2%}", skill_check_count, f"{percent_skill_check:2.2%}", ability_check_count, f"{percent_ability_check:2.2%}"])
 
 table.reversesort = True
-print(table.get_string(sortby="Average Total Roll"))
+print(table.get_string(sortby="# Rolls"))
 
 if len(missing) > 0:
     print()

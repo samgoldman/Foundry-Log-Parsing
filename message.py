@@ -108,6 +108,21 @@ class Message:
     def get_message_text(self):
         return self.raw
 
+    def is_saving_throw(self):
+        return "Saving Throw" in self.raw
+
+    def is_death_save(self):
+        return "Death Saving Throw" in self.raw
+
+    def is_attack_roll(self):
+        return "Attack Roll" in self.raw
+
+    def is_skill_check(self):
+        return "Skill Check" in self.raw
+
+    def is_ability_check(self):
+        return "Ability Check" in self.raw
+
     def get_speaker(self):
         return self.speaker
     
