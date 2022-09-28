@@ -42,9 +42,11 @@ def parse_roll(lines):
         print(f"Huh, formula result doesn't match 2nd line result: ({formula_match.group(3)}, {possible_result})")
         return None # Don't know what this is
 
-    part_1_split = formula_match.group(1).split(" ")
-    part_2_split = formula_match.group(2).split(" ")
+    part_1_split = re.split(r" [+\-*] ", formula_match.group(1))
+    part_2_split = re.split(r" [+\-*] ", formula_match.group(2))
 
+    if len(part_1_split) != len(part_2_split):
+        print(lines, part_1_split, part_2_split)
     assert(len(part_1_split) == len(part_2_split))
 
     dice_rolled = []
