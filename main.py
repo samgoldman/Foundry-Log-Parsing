@@ -96,12 +96,12 @@ for (player, rolls) in rolls_by_player.items():
     avg_tot_roll = sum(map(lambda r: r.get_result(), rolls)) / num_rolls
     nat_20_count = len(list(filter(lambda r: r.get_d20_value() == 20, rolls)))
     nat_01_count = len(list(filter(lambda r: r.get_d20_value() ==  1, rolls)))
-    prcnt_nat_20 = nat_20_count / num_rolls
-    prcnt_nat_01 = nat_01_count / num_rolls
+    percent_nat_20 = nat_20_count / num_rolls
+    percent_nat_01 = nat_01_count / num_rolls
     advantage_count = sum(map(lambda r: 1 if r.is_advantage() else 0, rolls))
-    prcnt_advantage = advantage_count / num_rolls
+    percent_advantage = advantage_count / num_rolls
     disadvantage_count = sum(map(lambda r: 1 if r.is_disadvantage() else 0, rolls))
-    prcnt_disadvantage = disadvantage_count / num_rolls
+    percent_disadvantage = disadvantage_count / num_rolls
     saving_throw_count = sum(map(lambda r: 1 if r.is_saving_throw() else 0, rolls))
     death_save_count = sum(map(lambda r: 1 if r.is_death_save() else 0, rolls))
     percent_saving_throw = saving_throw_count / num_rolls
@@ -113,7 +113,7 @@ for (player, rolls) in rolls_by_player.items():
     percent_ability_check = ability_check_count / num_rolls
 
 
-    table.add_row([player, num_rolls, f"{avg_raw_roll:.2f}", f"{avg_tot_roll:.2f}", nat_20_count, f"{prcnt_nat_20:2.2%}", nat_01_count, f"{prcnt_nat_01:2.2%}", advantage_count, f"{prcnt_advantage:2.2%}", disadvantage_count, f"{prcnt_disadvantage:2.2%}", f"{saving_throw_count} ({death_save_count})", f"{percent_saving_throw:2.2%}", attack_roll_count, f"{percent_attack_roll:2.2%}", skill_check_count, f"{percent_skill_check:2.2%}", ability_check_count, f"{percent_ability_check:2.2%}"])
+    table.add_row([player, num_rolls, f"{avg_raw_roll:.2f}", f"{avg_tot_roll:.2f}", nat_20_count, f"{percent_nat_20:2.2%}", nat_01_count, f"{percent_nat_01:2.2%}", advantage_count, f"{percent_advantage:2.2%}", disadvantage_count, f"{percent_disadvantage:2.2%}", f"{saving_throw_count} ({death_save_count})", f"{percent_saving_throw:2.2%}", attack_roll_count, f"{percent_attack_roll:2.2%}", skill_check_count, f"{percent_skill_check:2.2%}", ability_check_count, f"{percent_ability_check:2.2%}"])
 
 table.reversesort = True
 print(table.get_string(sortby="# Rolls"))
