@@ -63,7 +63,7 @@ class Roll(object):
         return f"{{{self.roll_type}: [{self.formula}] [{[d for d in self.dice]}] = [{self.total}]}}"
 
 class Message(object):
-    def __init__(self, user=None, data=None, timestamp=None, content=None, alias=None):
+    def __init__(self, user=None, data=None, timestamp=None, content=None, alias=None, flags=None):
         self.user = user
         self.alias = alias
         if not data is None:
@@ -73,26 +73,52 @@ class Message(object):
         self.timestamp = datetime.fromtimestamp(timestamp)
         self.content = content
 
+        self.saving_throw = None
+        self.skill_check = None
+        self.ability_check = None
+        self.attack = False
+        self.damage = False
+        self.hitDie = False
+        self.deathSave = False
+        self.attack_item = None
+        self.damage_item = None
+        # if 'dnd5e' in flags:
+        if 'dnd5e' in flags:
+            dnd_flags = flags['dnd5e']
+            if 'roll' in dnd_flags:
+                type = dnd_flags['roll']['type']
+                if type == 'ability':
+                    self.ability_check = dnd_flags['roll']['abilityId']
+                elif type == 'attack':
+                    self.attack = True
+                    self.attack_item = dnd_flags['roll']['itemId']
+                elif type == 'damage':
+                    self.damage = True
+                    self.damage_item = dnd_flags['roll']['itemId']
+                elif type == 'death':
+                    self.saving_throw = 'death'
+                    self.deathSave = True
+                elif type == 'hitDie':
+                    self.hitDie = True
+                elif type == 'save':
+                    self.saving_throw = dnd_flags['roll']['abilityId']
+                elif type == 'skill':
+                    self.skill_check = dnd_flags['roll']['skillId']
+
+
+
     def get_dice(self) -> List[Die]:
         if self.roll is None:
             return []
         roll: Roll = self.roll
         return roll.dice
 
+    def is_saving_throw(self) -> bool:
+        # if 
+        pass
+
     def __str__(self):
         return f"{self.timestamp} {self.user} {self.roll}"
-
-def load_json_file(filename) -> List[Message]:
-    file = open(filename)
-    data = json.load(file)
-    for d in data:
-        if "data" in d and not d["data"] is None:
-            if "class" in d["data"]:
-                d["data"]["roll_type"] = d["data"]["class"]
-                del d["data"]["class"]
-    data = [Message(**d) for d in data]
-    file.close()
-    return data
 
 def load_zip_file(filename: str) -> List[Message]:
     import zipfile
@@ -117,7 +143,8 @@ def load_zip_file(filename: str) -> List[Message]:
             "data": d,
             "timestamp": int(raw['timestamp'] / 1000),
             "content": raw['content'],
-            "alias": alias
+            "alias": alias,
+            "flags": raw['flags']
         })
     for d in data:
         if "data" in d and not d["data"] is None:
@@ -205,11 +232,7 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
     }
 
 def run(filename: str):
-    if filename.endswith('zip'):
-        messages = load_zip_file(filename)
-    else:
-        messages = load_json_file(filename)
-    
+    messages = load_zip_file(filename)
     messages = apply_april_fools_filter(messages)
 
     d20_data = {
