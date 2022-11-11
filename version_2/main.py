@@ -82,7 +82,6 @@ class Message(object):
         self.deathSave = False
         self.attack_item = None
         self.damage_item = None
-        # if 'dnd5e' in flags:
         if 'dnd5e' in flags:
             dnd_flags = flags['dnd5e']
             if 'roll' in dnd_flags:
@@ -114,8 +113,7 @@ class Message(object):
         return roll.dice
 
     def is_saving_throw(self) -> bool:
-        # if 
-        pass
+        return not self.saving_throw is None
 
     def __str__(self):
         return f"{self.timestamp} {self.user} {self.roll}"
