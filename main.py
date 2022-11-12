@@ -298,7 +298,7 @@ def average_final_d20_roll(dice: List[Die]) -> float:
     return total_value / count
 
 def average_d20_after_modifiers(messages: List[Message]) -> float:
-    total_value = [message.roll.total for message in messages]
+    total_value = sum([message.roll.total for message in messages])
     count = len(messages)
     return total_value / count
 
