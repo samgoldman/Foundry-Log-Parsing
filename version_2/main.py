@@ -104,16 +104,45 @@ class Message(object):
                 elif type == 'skill':
                     self.skill_check = dnd_flags['roll']['skillId']
 
-
-
     def get_dice(self) -> List[Die]:
         if self.roll is None:
             return []
         roll: Roll = self.roll
         return roll.dice
 
+    def has_d20(self) -> bool:
+        dice = self.get_dice()
+        for die in dice:
+            if die.is_dx(20):
+                return True
+        return False
+
     def is_saving_throw(self) -> bool:
         return not self.saving_throw is None
+
+    def save_type(self) -> str:
+        return self.saving_throw
+
+    def is_skill_check(self) -> bool:
+        return not self.skill_check is None
+
+    def skill_type(self) -> str:
+        return self.skill_check
+
+    def is_ability_check(self) -> bool:
+        return not self.ability_check is None
+
+    def ability_type(self) -> str:
+        return self.ability_check
+
+    def is_attack(self) -> bool:
+        return self.attack
+
+    def is_damage(self) -> bool:
+        return self.damage
+    
+    def is_hit_die(self) -> bool:
+        return self.hitDie
 
     def __str__(self):
         return f"{self.timestamp} {self.user} {self.roll}"
@@ -199,11 +228,27 @@ def get_d20s(messages: List[Message]) -> List[Die]:
     dice = get_all_dice(messages)
     return [die for die in dice if die.is_dx(20)]
 
-def count_advantage(dice: List[Die]) -> List[Die]:
+def get_d20_messages(messages: List[Message]) -> List[Message]:
+    dice = get_all_dice(messages)
+    return [message for message in messages if message.has_d20()]
+
+def count_advantage(dice: List[Die]) -> int:
     return len([die for die in dice if die.advantage])
 
-def count_disadvantage(dice: List[Die]) -> List[Die]:
+def count_disadvantage(dice: List[Die]) -> int:
     return len([die for die in dice if die.disadvantage])
+
+def count_skill_check(messages: List[Message]) -> int:
+    return len([message for message in messages if message.is_skill_check()])
+
+def count_ability_check(messages: List[Message]) -> int:
+    return len([message for message in messages if message.is_ability_check()])
+
+def count_saving_throw(messages: List[Message]) -> int:
+    return len([message for message in messages if message.is_saving_throw()])
+
+def count_attack_roll(messages: List[Message]) -> int:
+    return len([message for message in messages if message.is_attack()])
 
 def filter_user(messages: List[Message], user: str) -> List[Message]:
     return list(filter(lambda message: message.user == user, messages))
@@ -213,10 +258,15 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
         messages = filter_user(messages, user)
 
     d20s = get_d20s(messages)
+    d20s_messages = get_d20_messages(messages)
     d20_count = sum([die.number for die in d20s])
     roll_count = len(d20s) # Number of rolls (advantage and disadvantage count as 1)
     advantage_count = count_advantage(d20s)
     disadvantage_count = count_disadvantage(d20s)
+    skill_check_count = count_skill_check(d20s_messages)
+    ability_check_count = count_ability_check(d20s_messages)
+    saving_throw_count = count_saving_throw(d20s_messages)
+    attack_roll_count = count_attack_roll(d20s_messages)
     advantage_ratio = advantage_count / roll_count
     disadvantage_ratio = disadvantage_count / roll_count
 
@@ -226,7 +276,15 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
         'advantage_count': advantage_count,
         'disadvantage_count': disadvantage_count,
         'advantage_ratio': advantage_ratio,
-        'disadvantage_ratio': disadvantage_ratio,
+        'disadvantage_ratio': disadvantage_ratio,    
+        'skill_check_count': skill_check_count,
+        'skill_check_ratio': skill_check_count / roll_count,
+        'ability_check_count': ability_check_count,
+        'ability_check_ratio': ability_check_count / roll_count,
+        'saving_throw_count': saving_throw_count,
+        'saving_throw_ratio': saving_throw_count / roll_count,
+        'attack_roll_count': attack_roll_count,
+        'attack_roll_ratio': attack_roll_count / roll_count,
     }
 
 def run(filename: str):
@@ -242,47 +300,9 @@ def run(filename: str):
         d20_data[user] = generate_d20_data(messages, user=user)
 
     print(d20_data)
+    with open('d20_data.json', 'w') as f:
+        json.dump(d20_data, f)
 
-    # count_d347 = sum([d.number for d in dice if d.is_d347()])
-    # count_d100 = sum([d.number for d in dice if d.is_d100()])
-    # count_d20 = sum([d.number for d in dice if d.is_d20()])
-    # count_d12 = sum([d.number for d in dice if d.is_d12()])
-    # count_d10 = sum([d.number for d in dice if d.is_d10()])
-    # count_d8 = sum([d.number for d in dice if d.is_d8()])
-    # count_d6 = sum([d.number for d in dice if d.is_d6()])
-    # count_d4 = sum([d.number for d in dice if d.is_d4()])
-    # print(sorted([str(d) for d in dice if not (d.is_d347() or d.is_d100() or d.is_d20() or d.is_d12() or d.is_d10() or d.is_d8() or d.is_d6() or d.is_d4() ) ]))
-    # print(count_d347)
-    # print(count_d100)
-    # print(count_d20)
-    # print(count_d12)
-    # print(count_d10)
-    # print(count_d8)
-    # print(count_d6)
-    # print(count_d4)
-
-    # total_value_d347 = sum(flatten([d.active_results + d.inactive_results for d in dice if d.is_d347()]))
-    # total_value_d100 = sum(flatten([d.active_results + d.inactive_results for d in dice if d.is_d100()]))
-    # total_value_d20 = sum(flatten([d.active_results + d.inactive_results for d in dice if d.is_d20()]))
-    # total_value_d12 = sum(flatten([d.active_results + d.inactive_results for d in dice if d.is_d12()]))
-    # total_value_d10 = sum(flatten([d.active_results + d.inactive_results for d in dice if d.is_d10()]))
-    # total_value_d8 = sum(flatten([d.active_results + d.inactive_results for d in dice if d.is_d8()]))
-    # total_value_d6 = sum(flatten([d.active_results + d.inactive_results for d in dice if d.is_d6()]))
-    # total_value_d4 = sum(flatten([d.active_results + d.inactive_results for d in dice if d.is_d4()]))
-    # print(total_value_d347 / count_d347)
-    # print(total_value_d100 / count_d100)
-    # print(total_value_d20 / count_d20)
-    # print(total_value_d12 / count_d12)
-    # print(total_value_d10 / count_d10)
-    # print(total_value_d8 / count_d8)
-    # print(total_value_d6 / count_d6)
-    # print(total_value_d4 / count_d4)
-
-    # aliases = filter(lambda a: not a is None, [message.alias for message in data])
-    # unique_aliases = set(aliases)
-    # for a in sorted(unique_aliases):
-    #     print(a)
-    # print(len(unique_aliases))
 
 if __name__ == "__main__":
     filename = sys.argv[1]
