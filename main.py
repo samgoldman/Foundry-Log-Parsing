@@ -280,6 +280,18 @@ def count_saving_throw(messages: List[Message]) -> int:
 def count_attack_roll(messages: List[Message]) -> int:
     return len([message for message in messages if message.is_attack()])
 
+def get_d20_skill_messages(messages: List[Message]) -> List[Message]:
+    return [message for message in messages if message.is_skill_check()]
+
+def get_d20_ability_messages(messages: List[Message]) -> List[Message]:
+    return [message for message in messages if message.is_ability_check()]
+
+def get_d20_save_messages(messages: List[Message]) -> List[Message]:
+    return [message for message in messages if message.is_saving_throw()]
+
+def get_d20_attack_messages(messages: List[Message]) -> List[Message]:
+    return [message for message in messages if message.is_attack()]
+
 def filter_user(messages: List[Message], user: str) -> List[Message]:
     return list(filter(lambda message: message.user == user, messages))
 
@@ -308,6 +320,11 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
 
     d20s = get_d20s(messages)
     d20s_messages = get_d20_messages(messages)
+
+    d20_attack_messages = get_d20_attack_messages(d20s_messages)
+    d20_save_messages = get_d20_save_messages(d20s_messages)
+    d20_skill_messages = get_d20_skill_messages(d20s_messages)
+    d20_ability_messages = get_d20_ability_messages(d20s_messages)
 
     d20_count = sum([die.number for die in d20s])
     roll_count = len(d20s) # Number of rolls (advantage and disadvantage count as 1)
@@ -348,6 +365,14 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
         'average_raw_d20_roll': average_raw_d20_roll(d20s),
         'average_final_d20_roll': average_final_d20_roll(d20s),
         'average_d20_after_modifiers': average_d20_after_modifiers(d20s_messages),
+        'average_attack_before_modifiers': average_final_d20_roll(d20_attack_messages),
+        'average_save_before_modifiers': average_final_d20_roll(d20_save_messages),
+        'average_skill_before_modifiers': average_final_d20_roll(d20_skill_messages),
+        'average_ability_before_modifiers': average_final_d20_roll(d20_ability_messages),
+        'average_attack_after_modifiers': average_d20_after_modifiers(d20_attack_messages),
+        'average_save_after_modifiers': average_d20_after_modifiers(d20_save_messages),
+        'average_skill_after_modifiers': average_d20_after_modifiers(d20_skill_messages),
+        'average_ability_after_modifiers': average_d20_after_modifiers(d20_ability_messages),
     }
 
 def run(filename: str):
