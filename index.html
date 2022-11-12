@@ -1,0 +1,93 @@
+<!-- Code from d3-graph-gallery.com -->
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
+<!-- Create a div where the graph will take place -->
+<table class="table table-sm table-striped table-hover sortable"></table>
+<style>
+  td, th {
+  padding: 1px 4px;
+}
+</style>
+
+<script>
+const getCellValue = (tr, idx) => {
+  let v = tr.children[idx].innerText || tr.children[idx].textContent
+  if (v.slice(-1) === '%') {
+    return parseFloat(v.slice(0, -1));
+  }
+  return v;
+};
+
+const comparer = (idx, asc) => (a, b) => ((v1, v2) => 
+    v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
+    )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+
+  function tabulate(data, columns, column_name_map, column_pct_map) {
+		const table = d3.select('table')
+		const thead = table.append('thead')
+		const	tbody = table.append('tbody');
+
+		// append the header row
+		thead.append('tr')
+		  .selectAll('th')
+		  .data(columns).enter()
+		  .append('th')
+		    .text(function (column) { if (column_name_map[column] === undefined) {return column} else {return column_name_map[column]} });
+
+		// create a row for each object in the data
+		const rows = tbody.selectAll('tr')
+		  .data(data)
+		  .enter()
+		  .append('tr');
+    const formatter = new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 1,      
+      maximumFractionDigits: 1,
+    });
+		// create a cell in each row for each column
+		const cells = rows.selectAll('td')
+		  .data(function (row) {
+		    return columns.map(function (column) {
+          if (column_pct_map[column] === undefined || column_pct_map[column] !== true) {
+		        return {column: column, value: row[column]}
+          } else {
+            return {column: column, value: formatter.format(row[column] * 100) + '%'}
+          };
+		    });
+		  })
+		  .enter()
+		  .append('td')
+		    .text(function (d) { return d.value; });
+
+	  return table;
+	}
+
+d3.json('d20_data.json', (error, data) => {
+  const column_name_map = {
+    'player': 'Player',
+    'roll_count': 'D20 Rolls',
+    'advantage_count': 'Rolls with Advantage',
+    'disadvantage_count': 'Rolls with Disadvantage',
+    'advantage_ratio': '% Advantage',
+    'disadvantage_ratio': '% Disadvantage',
+  }
+  const column_pct_map = {
+    'advantage_ratio': true,
+    'disadvantage_ratio': true
+  }
+  tabulate(data, ['player', 'roll_count', 'advantage_count', 'advantage_ratio', 'disadvantage_count', 'disadvantage_ratio'], column_name_map, column_pct_map);
+
+  document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
+    const table = th.closest('table');
+    const tbody = table.querySelector('tbody')
+    Array.from(tbody.querySelectorAll('tr'))
+        .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
+        .forEach(tr => tbody.appendChild(tr) );
+})));
+});
+
+</script>

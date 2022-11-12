@@ -291,17 +291,20 @@ def run(filename: str):
     messages = load_zip_file(filename)
     messages = apply_april_fools_filter(messages)
 
-    d20_data = {
-        'All': generate_d20_data(messages, user=None)
-    }
+    all = generate_d20_data(messages, user=None)
+    all['player'] = 'All'
+    d20_data = [
+        all
+    ]
 
     users = ['Gamemaster', 'threshprince', 'OneRandomThing', 'Igazsag', 'teagold']
     for user in users:
-        d20_data[user] = generate_d20_data(messages, user=user)
+        user_data = generate_d20_data(messages, user=user)
+        user_data['player'] = user
+        d20_data.append(user_data)
 
-    print(d20_data)
     with open('d20_data.json', 'w') as f:
-        json.dump(d20_data, f)
+        json.dump(d20_data, f, indent=4)
 
 
 if __name__ == "__main__":
