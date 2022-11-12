@@ -303,7 +303,8 @@ def average_raw_d20_roll(dice: List[Die]) -> float:
     count = len(all)
     return total_value / count
 
-def average_final_d20_roll(dice: List[Die]) -> float:
+def average_final_d20_roll(messages: List[Message]) -> float:
+    dice = get_d20s(messages)
     all_active = [die.active_results[0] for die in dice]
     total_value = sum(all_active)
     count = len(all_active)
@@ -363,7 +364,7 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
         'super_nat_1_count': len([die for die in d20s if die.is_super_nat_1()]),
         'advantage_nat_1_count': len([die for die in d20s if die.is_advantage_nat_1()]),
         'average_raw_d20_roll': average_raw_d20_roll(d20s),
-        'average_final_d20_roll': average_final_d20_roll(d20s),
+        'average_final_d20_roll': average_final_d20_roll(d20s_messages),
         'average_d20_after_modifiers': average_d20_after_modifiers(d20s_messages),
         'average_attack_before_modifiers': average_final_d20_roll(d20_attack_messages),
         'average_save_before_modifiers': average_final_d20_roll(d20_save_messages),

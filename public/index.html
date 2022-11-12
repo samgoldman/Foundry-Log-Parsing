@@ -21,6 +21,9 @@
 <table id="type_of_roll" class="table table-sm table-striped table-hover sortable"></table>
 <h1>The Extremes</h1>
 <table id="crits" class="table table-sm table-striped table-hover sortable"></table>
+<h1>D20 Average Rolls</h1>
+<table id="d20_performance_by_type" class="table table-sm table-striped table-hover sortable"></table>
+
 <script>
 const getCellValue = (tr, idx) => {
   let v = tr.children[idx].innerText || tr.children[idx].textContent
@@ -34,7 +37,7 @@ const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
     v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
     )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
 
-  function tabulate(id, data, columns, column_name_map, column_pct_map) {
+  function tabulate(id, data, columns, column_name_map, column_pct_map, column_roll_fmt_map) {
 		const table = d3.select(id)
 		const thead = table.append('thead')
 		const	tbody = table.append('tbody');
@@ -59,10 +62,12 @@ const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
 		const cells = rows.selectAll('td')
 		  .data(function (row) {
 		    return columns.map(function (column) {
-          if (column_pct_map[column] === undefined || column_pct_map[column] !== true) {
-		        return {column: column, value: row[column]}
-          } else {
+          if (column_pct_map[column] !== undefined && column_pct_map[column] === true) {
             return {column: column, value: formatter.format(row[column] * 100) + '%'}
+          } else if (column_roll_fmt_map[column] !== undefined && column_roll_fmt_map[column] === true) {
+            return {column: column, value: formatter.format(row[column])}
+          } else {
+		        return {column: column, value: row[column]}
           };
 		    });
 		  })
@@ -98,7 +103,18 @@ d3.json('d20_data.json', (error, data) => {
     'disadvantage_nat_20_count': 'Disadvantage Nat 20s',
     'dropped_nat_1_count': 'Dropped Nat 1s',
     'super_nat_1_count': 'Super Nat 1s',
-    'advantage_nat_1_count': 'Advantage Nat 1s'
+    'advantage_nat_1_count': 'Advantage Nat 1s',
+    'average_raw_d20_roll': "Raw D20 (inc. dropped)",
+    'average_final_d20_roll': "Raw D20 (after adv./disadv.)",
+    'average_d20_after_modifiers': "D20 after Mods",
+    'average_attack_before_modifiers': "Attacks before Mods",
+    'average_save_before_modifiers': "Saves before Mods",
+    'average_skill_before_modifiers': "Skill Checks before Mods",
+    'average_ability_before_modifiers': "Ability Checks before Mods",
+    'average_attack_after_modifiers': "Attacks after Mods",
+    'average_save_after_modifiers': "Saves after Mods",
+    'average_skill_after_modifiers': "Skill Checks after Mods",
+    'average_ability_after_modifiers': "Ability Checks after Mods",
   }
   const column_pct_map = {
     'advantage_ratio': true,
@@ -110,9 +126,23 @@ d3.json('d20_data.json', (error, data) => {
     'nat_20_ratio': true,
     'nat_1_ratio': true,
   }
-  tabulate('#advantage', data, ['player', 'roll_count', 'advantage_count', 'advantage_ratio', 'disadvantage_count', 'disadvantage_ratio'], column_name_map, column_pct_map);
-  tabulate('#type_of_roll', data, ['player', 'roll_count', 'attack_roll_count', 'attack_roll_ratio', 'saving_throw_count', 'saving_throw_ratio', 'ability_check_count', 'ability_check_ratio', 'skill_check_count', 'skill_check_ratio'], column_name_map, column_pct_map);
-  tabulate('#crits', data, ['player', 'roll_count', 'nat_20_count', 'nat_20_ratio', 'nat_1_count', 'nat_1_ratio', 'stolen_nat_20_count', 'super_nat_20_count', 'disadvantage_nat_20_count', 'dropped_nat_1_count', 'super_nat_1_count', 'advantage_nat_1_count'], column_name_map, column_pct_map);
+  const column_roll_fmt_map = {
+    'average_raw_d20_roll': true,
+    'average_final_d20_roll': true,
+    'average_d20_after_modifiers': true,
+    'average_attack_before_modifiers': true,
+    'average_save_before_modifiers': true,
+    'average_skill_before_modifiers': true,
+    'average_ability_before_modifiers': true,
+    'average_attack_after_modifiers': true,
+    'average_save_after_modifiers': true,
+    'average_skill_after_modifiers': true,
+    'average_ability_after_modifiers': true,
+  }
+  tabulate('#advantage', data, ['player', 'roll_count', 'advantage_count', 'advantage_ratio', 'disadvantage_count', 'disadvantage_ratio'], column_name_map, column_pct_map, column_roll_fmt_map);
+  tabulate('#type_of_roll', data, ['player', 'roll_count', 'attack_roll_count', 'attack_roll_ratio', 'saving_throw_count', 'saving_throw_ratio', 'ability_check_count', 'ability_check_ratio', 'skill_check_count', 'skill_check_ratio'], column_name_map, column_pct_map, column_roll_fmt_map);
+  tabulate('#crits', data, ['player', 'roll_count', 'nat_20_count', 'nat_20_ratio', 'nat_1_count', 'nat_1_ratio', 'stolen_nat_20_count', 'super_nat_20_count', 'disadvantage_nat_20_count', 'dropped_nat_1_count', 'super_nat_1_count', 'advantage_nat_1_count'], column_name_map, column_pct_map, column_roll_fmt_map);
+  tabulate('#d20_performance_by_type', data, ['player', 'roll_count', 'average_raw_d20_roll', 'average_final_d20_roll', 'average_d20_after_modifiers', 'average_attack_before_modifiers', 'average_attack_after_modifiers', 'average_save_before_modifiers', 'average_save_after_modifiers', 'average_skill_before_modifiers', 'average_skill_after_modifiers', 'average_ability_before_modifiers', 'average_ability_after_modifiers'], column_name_map, column_pct_map, column_roll_fmt_map);
 
   document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
     const table = th.closest('table');
