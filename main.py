@@ -298,7 +298,7 @@ def average_final_d20_roll(dice: List[Die]) -> float:
     return total_value / count
 
 def average_d20_after_modifiers(messages: List[Message]) -> float:
-    total_value = [message.total for message in messages]
+    total_value = [message.roll.total for message in messages]
     count = len(messages)
     return total_value / count
 
@@ -308,11 +308,6 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
 
     d20s = get_d20s(messages)
     d20s_messages = get_d20_messages(messages)
-
-    for message in d20s_messages:
-        for die in message.get_dice():
-            if die.is_stolen_nat_20():
-                print(message.content, message.roll)
 
     d20_count = sum([die.number for die in d20s])
     roll_count = len(d20s) # Number of rolls (advantage and disadvantage count as 1)
