@@ -19,6 +19,8 @@
 <table id="advantage" class="table table-sm table-striped table-hover sortable"></table>
 <h1>Type of Roll</h1>
 <table id="type_of_roll" class="table table-sm table-striped table-hover sortable"></table>
+<h1>The Extremes</h1>
+<table id="crits" class="table table-sm table-striped table-hover sortable"></table>
 <script>
 const getCellValue = (tr, idx) => {
   let v = tr.children[idx].innerText || tr.children[idx].textContent
@@ -87,6 +89,16 @@ d3.json('d20_data.json', (error, data) => {
     'ability_check_ratio': '% Ability Checks',
     'skill_check_count': 'Skill Checks',
     'skill_check_ratio': '% Skill Checks',
+    'nat_20_count': 'Nat 20s',
+    'nat_20_ratio': '% Nat 20s',
+    'nat_1_count': 'Nat 1s',
+    'nat_1_ratio': '% Nat 1s',
+    'stolen_nat_20_count': 'Stolen Nat 20s', 
+    'super_nat_20_count': 'Super Nat 20s',
+    'disadvantage_nat_20_count': 'Disadvantage Nat 20s',
+    'dropped_nat_1_count': 'Dropped Nat 1s',
+    'super_nat_1_count': 'Super Nat 1s',
+    'advantage_nat_1_count': 'Advantage Nat 1s'
   }
   const column_pct_map = {
     'advantage_ratio': true,
@@ -95,9 +107,12 @@ d3.json('d20_data.json', (error, data) => {
     'saving_throw_ratio': true,
     'ability_check_ratio': true,
     'skill_check_ratio': true,
+    'nat_20_ratio': true,
+    'nat_1_ratio': true,
   }
   tabulate('#advantage', data, ['player', 'roll_count', 'advantage_count', 'advantage_ratio', 'disadvantage_count', 'disadvantage_ratio'], column_name_map, column_pct_map);
   tabulate('#type_of_roll', data, ['player', 'roll_count', 'attack_roll_count', 'attack_roll_ratio', 'saving_throw_count', 'saving_throw_ratio', 'ability_check_count', 'ability_check_ratio', 'skill_check_count', 'skill_check_ratio'], column_name_map, column_pct_map);
+  tabulate('#crits', data, ['player', 'roll_count', 'nat_20_count', 'nat_20_ratio', 'nat_1_count', 'nat_1_ratio', 'stolen_nat_20_count', 'super_nat_20_count', 'disadvantage_nat_20_count', 'dropped_nat_1_count', 'super_nat_1_count', 'advantage_nat_1_count'], column_name_map, column_pct_map);
 
   document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
     const table = th.closest('table');

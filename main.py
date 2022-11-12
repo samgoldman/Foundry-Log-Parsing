@@ -37,6 +37,30 @@ class Die(object):
         results: List[Dict] = self.results
         return list(map(lambda res: res['result'], results))
 
+    def is_nat_20(self) -> bool:
+        return self.active_results[0] == 20
+
+    def is_nat_1(self) -> bool:
+        return self.active_results[0] == 1
+
+    def is_stolen_nat_20(self) -> bool:
+        return self.disadvantage and self.active_results[0] != 20 and self.inactive_results[0] == 20
+
+    def is_super_nat_20(self) -> bool:
+        return self.advantage and self.active_results[0] == 20 and self.inactive_results[0] == 20
+
+    def is_disadvantage_nat_20(self) -> bool:
+        return self.disadvantage and self.active_results[0] == 20 and self.inactive_results[0] == 20
+
+    def is_dropped_nat_1(self) -> bool:
+        return self.advantage and self.active_results[0] != 1 and self.inactive_results[0] == 1
+
+    def is_super_nat_1(self) -> bool:
+        return self.disadvantage and self.active_results[0] == 1 and self.inactive_results[0] == 1
+
+    def is_advantage_nat_1(self) -> bool:
+        return self.advantage and self.active_results[0] == 1 and self.inactive_results[0] == 1
+
     def __str__(self):
         return f"{self.number}d{self.faces}"
 
@@ -238,6 +262,12 @@ def count_advantage(dice: List[Die]) -> int:
 def count_disadvantage(dice: List[Die]) -> int:
     return len([die for die in dice if die.disadvantage])
 
+def count_nat_20s(dice: List[Die]) -> int:
+    return len([die for die in dice if die.is_nat_20()])
+
+def count_nat_1s(dice: List[Die]) -> int:
+    return len([die for die in dice if die.is_nat_1()])
+
 def count_skill_check(messages: List[Message]) -> int:
     return len([message for message in messages if message.is_skill_check()])
 
@@ -259,6 +289,12 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
 
     d20s = get_d20s(messages)
     d20s_messages = get_d20_messages(messages)
+
+    for message in d20s_messages:
+        for die in message.get_dice():
+            if die.is_stolen_nat_20():
+                print(message.content, message.roll)
+
     d20_count = sum([die.number for die in d20s])
     roll_count = len(d20s) # Number of rolls (advantage and disadvantage count as 1)
     advantage_count = count_advantage(d20s)
@@ -285,6 +321,16 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
         'saving_throw_ratio': saving_throw_count / roll_count,
         'attack_roll_count': attack_roll_count,
         'attack_roll_ratio': attack_roll_count / roll_count,
+        'nat_20_count': count_nat_20s(d20s),
+        'nat_20_ratio': count_nat_20s(d20s) / roll_count,
+        'nat_1_count': count_nat_1s(d20s),
+        'nat_1_ratio': count_nat_1s(d20s) / roll_count,
+        'stolen_nat_20_count': len([die for die in d20s if die.is_stolen_nat_20()]),
+        'super_nat_20_count': len([die for die in d20s if die.is_super_nat_20()]),
+        'disadvantage_nat_20_count': len([die for die in d20s if die.is_disadvantage_nat_20()]),
+        'dropped_nat_1_count': len([die for die in d20s if die.is_dropped_nat_1()]),
+        'super_nat_1_count': len([die for die in d20s if die.is_super_nat_1()]),
+        'advantage_nat_1_count': len([die for die in d20s if die.is_advantage_nat_1()]),
     }
 
 def run(filename: str):
