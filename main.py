@@ -283,6 +283,14 @@ def count_attack_roll(messages: List[Message]) -> int:
 def filter_user(messages: List[Message], user: str) -> List[Message]:
     return list(filter(lambda message: message.user == user, messages))
 
+def average_raw_d20_roll(dice: List[Die]) -> int:
+    all_active = [die.active_results[0] for die in dice]
+    all_inactive = [die.inactive_results[0] for die in dice if len(die.inactive_results) > 0]
+    all = all_active + all_inactive
+    total_value = sum(all)
+    count = len(all)
+    return total_value / count
+
 def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
     if not user is None:
         messages = filter_user(messages, user)
@@ -331,6 +339,7 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
         'dropped_nat_1_count': len([die for die in d20s if die.is_dropped_nat_1()]),
         'super_nat_1_count': len([die for die in d20s if die.is_super_nat_1()]),
         'advantage_nat_1_count': len([die for die in d20s if die.is_advantage_nat_1()]),
+        'average_raw_d20_roll': average_raw_d20_roll(d20s),
     }
 
 def run(filename: str):
