@@ -38,7 +38,7 @@ jobs:
           # Upload entire repository
           path: |
             version_2/index.html
-            d20_data.json
+            # d20_data.json
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
