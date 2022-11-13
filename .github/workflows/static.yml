@@ -45,7 +45,6 @@ jobs:
           max_attempts: 3
           command: python download_zip.py ${{ secrets.FORGE_EMAIL }} ${{ secrets.FORGE_PASSWORD }}
       - run: python main.py ./Forge*.zip salocaia threshprince OneRandomThing Igazsag teagold
-      - run: mv salocaia_data.json ./public
       - run: rm ./Forge*.zip
 
       # - uses: nick-fields/retry@v2
@@ -54,7 +53,6 @@ jobs:
       #     max_attempts: 3
       #     command: python download_zip.py ${{ secrets.VOLARUS_FORGE_EMAIL }} ${{ secrets.VOLARUS_FORGE_PASSWORD }}
       # - run: python main.py ./Forge*.zip voralus Alex Parker Sam Talya
-      # - run: mv voralus_data.json ./public
       # - run: rm ./Forge*.zip
 
       - name: Setup Pages

@@ -328,20 +328,27 @@ def average_d20_after_modifiers(messages: List[Message]) -> float:
     count = len(messages)
     return total_value / count
 
-def count_saves(messages: List[Message], type: str) -> int:
-    return len([message for message in messages if message.save_type() == type])
+def count_saves(messages: List[Message], skill_type: str) -> int:
+    return len([message for message in messages if message.save_type() == skill_type])
 
-def count_ability_checks(messages: List[Message], type: str) -> int:
-    return len([message for message in messages if message.ability_type() == type])
+def count_ability_checks(messages: List[Message], skill_type: str) -> int:
+    return len([message for message in messages if message.ability_type() == skill_type])
 
-def count_skill_checks(messages: List[Message], type: str) -> int:
-    return len([message for message in messages if message.skill_type() == type])
+def count_skill_checks(messages: List[Message], skill_type: str) -> int:
+    return len([message for message in messages if message.skill_type() == skill_type])
 
-def generate_skill_data(messages: List[Message]) -> Dict[str, int] | Dict[str, float]:
+def skill_check_average(messages: List[Message], skill_type: str) -> int:
+    count = count_skill_checks(messages, skill_type)
+    if count == 0:
+        return 0.0
+    return average_d20_after_modifiers([message for message in messages if message.skill_type() == skill_type])
+
+def generate_skill_data(messages: List[Message]) -> Dict[str, float]:
     skills = {"acr":"Acrobatics","ani":"Animal Handling","arc":"Arcana","ath":"Athletics","dec":"Deception","his":"History","ins":"Insight","itm":"Intimidation","inv":"Investigation","med":"Medicine","nat":"Nature","prc":"Perception","prf":"Performance","per":"Persuasion","rel":"Religion","slt":"Sleight of Hand","ste":"Stealth","sur":"Survival"}
     data = {}
     for id in skills:
         data[f"{id}_skill_count"] = count_skill_checks(messages, id)
+        data[f"{id}_skill_average"] = skill_check_average(messages, id)
     return data
 
 def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
@@ -418,7 +425,8 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
         'int_ability_check_count': count_ability_checks(d20_ability_messages, 'int'),
         'wis_ability_check_count': count_ability_checks(d20_ability_messages, 'wis'),
         'cha_ability_check_count': count_ability_checks(d20_ability_messages, 'cha'),
-    } | generate_skill_data(d20_skill_messages)
+        **generate_skill_data(d20_skill_messages)
+    }
 
 def run(filename: str, world_name: str, players: List[str]):
     messages = load_zip_file(filename, world_name)
@@ -436,7 +444,7 @@ def run(filename: str, world_name: str, players: List[str]):
         user_data['player'] = user
         d20_data.append(user_data)
 
-    with open(f'{world_name}_data.json', 'w') as f:
+    with open(f'./public/{world_name}_data.json', 'w') as f:
         json.dump(d20_data, f, indent=4)
 
 

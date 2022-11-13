@@ -28,7 +28,8 @@
 <h1>Ability Checks</h1>
 <table id="ability_specific_data" class="table table-sm table-striped table-hover sortable"></table>
 <h1>Skill Checks</h1>
-<table id="skill_specific_data" class="table table-sm table-striped table-hover sortable"></table>
+<table id="skill_specific_data1" class="table table-sm table-striped table-hover sortable"></table>
+<table id="skill_specific_data2" class="table table-sm table-striped table-hover sortable"></table>
 
 <script>
 const getCellValue = (tr, idx) => {
@@ -139,24 +140,6 @@ d3.json(`${world}_data.json`, (error, data) => {
     'int_ability_check_count': 'INT Count',
     'wis_ability_check_count': 'WIS Count',
     'cha_ability_check_count': 'CHA Count',
-    'acr_skill_count': 'Acrobatics Count',
-    'ani_skill_count':'Animal Handling Count',
-    'arc_skill_count':'Arcana Count',
-    'ath_skill_count':'Athletics Count',
-    'dec_skill_count':'Deception Count',
-    'his_skill_count':'History Count',
-    'ins_skill_count':'Insight Count',
-    'itm_skill_count':'Intimidation Count',
-    'inv_skill_count':'Investigation Count',
-    'med_skill_count':'Medicine Count',
-    'nat_skill_count':'Nature Count',
-    'prc_skill_count':'Perception Count',
-    'prf_skill_count':'Performance Count',
-    'per_skill_count':'Persuasion Count',
-    'rel_skill_count':'Religion Count',
-    'slt_skill_count':'Sleight of Hand Count',
-    'ste_skill_count':'Stealth Count',
-    'sur_skill_count':'Survival Count',
   }
   const column_pct_map = {
     'advantage_ratio': true,
@@ -181,13 +164,29 @@ d3.json(`${world}_data.json`, (error, data) => {
     'average_skill_after_modifiers': true,
     'average_ability_after_modifiers': true,
   }
+  
+  
+  
   tabulate('#advantage', data, ['player', 'roll_count', 'advantage_count', 'advantage_ratio', 'disadvantage_count', 'disadvantage_ratio'], column_name_map, column_pct_map, column_roll_fmt_map);
   tabulate('#type_of_roll', data, ['player', 'roll_count', 'attack_roll_count', 'attack_roll_ratio', 'saving_throw_count', 'saving_throw_ratio', 'ability_check_count', 'ability_check_ratio', 'skill_check_count', 'skill_check_ratio'], column_name_map, column_pct_map, column_roll_fmt_map);
   tabulate('#crits', data, ['player', 'roll_count', 'nat_20_count', 'nat_20_ratio', 'nat_1_count', 'nat_1_ratio', 'stolen_nat_20_count', 'super_nat_20_count', 'disadvantage_nat_20_count', 'dropped_nat_1_count', 'super_nat_1_count', 'advantage_nat_1_count'], column_name_map, column_pct_map, column_roll_fmt_map);
   tabulate('#d20_performance_by_type', data, ['player', 'roll_count', 'average_raw_d20_roll', 'average_final_d20_roll', 'average_d20_after_modifiers', 'average_attack_before_modifiers', 'average_attack_after_modifiers', 'average_save_before_modifiers', 'average_save_after_modifiers', 'average_skill_before_modifiers', 'average_skill_after_modifiers', 'average_ability_before_modifiers', 'average_ability_after_modifiers'], column_name_map, column_pct_map, column_roll_fmt_map);
   tabulate('#save_specific_data', data, ['player', 'saving_throw_count', 'str_save_count', 'dex_save_count', 'con_save_count', 'int_save_count', 'wis_save_count', 'cha_save_count', 'death_save_count'], column_name_map, column_pct_map, column_roll_fmt_map);
   tabulate('#ability_specific_data', data, ['player', 'ability_check_count', 'str_ability_check_count', 'dex_ability_check_count', 'con_ability_check_count', 'int_ability_check_count', 'wis_ability_check_count', 'cha_ability_check_count'], column_name_map, column_pct_map, column_roll_fmt_map);
-  tabulate('#skill_specific_data', data, ['player', 'skill_check_count', 'acr_skill_count', 'ani_skill_count', 'arc_skill_count', 'ath_skill_count', 'dec_skill_count', 'his_skill_count', 'ins_skill_count', 'itm_skill_count', 'inv_skill_count', 'med_skill_count', 'nat_skill_count', 'prc_skill_count', 'prf_skill_count', 'per_skill_count', 'rel_skill_count', 'slt_skill_count', 'ste_skill_count', 'sur_skill_count'], column_name_map, column_pct_map, column_roll_fmt_map)
+  const SKILLS = {"acr":"Acrobatics","ani":"Animal Handling","arc":"Arcana","ath":"Athletics","dec":"Deception","his":"History","ins":"Insight","itm":"Intimidation","inv":"Investigation","med":"Medicine","nat":"Nature","prc":"Perception","prf":"Performance","per":"Persuasion","rel":"Religion","slt":"Sleight of Hand","ste":"Stealth","sur":"Survival"};
+  
+  let skill_count_columns = ['player', 'skill_check_count']
+  let skill_average_columns = ['player', 'skill_check_count']
+  for (const [key, value] of Object.entries(SKILLS)) {
+    skill_count_columns.push(`${key}_skill_count`);
+    skill_average_columns.push(`${key}_skill_average`);
+    column_name_map[`${key}_skill_count`] = `${value} Count`;
+    column_name_map[`${key}_skill_average`] = `Avg. ${value}`;
+    column_roll_fmt_map[`${key}_skill_average`] = true;
+  }
+  
+  tabulate('#skill_specific_data1', data, skill_count_columns, column_name_map, column_pct_map, column_roll_fmt_map)
+  tabulate('#skill_specific_data2', data, skill_average_columns, column_name_map, column_pct_map, column_roll_fmt_map)
 
   document.querySelectorAll('th').forEach(th => th.addEventListener('click', (() => {
     const table = th.closest('table');
