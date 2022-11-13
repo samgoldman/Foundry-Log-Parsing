@@ -44,8 +44,8 @@ jobs:
           timeout_minutes: 3
           max_attempts: 3
           command: python download_zip.py ${{ secrets.FORGE_EMAIL }} ${{ secrets.FORGE_PASSWORD }}
-      - run: python main.py ./Forge*.zip
-      - run: mv d20_data.json ./public
+      - run: python main.py ./Forge*.zip salocaia
+      - run: mv salocaia_data.json ./public
       - name: Setup Pages
         uses: actions/configure-pages@v2
       - name: Upload artifact

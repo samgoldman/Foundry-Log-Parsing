@@ -171,17 +171,17 @@ class Message(object):
     def __str__(self):
         return f"{self.timestamp} {self.user} {self.roll}"
 
-def load_zip_file(filename: str) -> List[Message]:
+def load_zip_file(filename: str, world_name: str) -> List[Message]:
     import zipfile
     archive = zipfile.ZipFile(filename, 'r')
 
     user_map = {None: 'UNKNOWN USER'}
-    for line in archive.open('salocaia/data/users.db'):
+    for line in archive.open(f'{world_name}/data/users.db'):
         raw = json.loads(line)
         user_map[raw['_id']] = raw['name']
 
     raw_data = []
-    for line in archive.open('salocaia/data/messages.db'):
+    for line in archive.open(f'{world_name}/data/messages.db'):
         raw_data.append(json.loads(line))
     data = []
     for raw in raw_data:
@@ -409,8 +409,8 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
         'cha_ability_check_count': count_ability_checks(d20_ability_messages, 'cha'),
     } | generate_skill_data(d20_skill_messages)
 
-def run(filename: str):
-    messages = load_zip_file(filename)
+def run(filename: str, world_name: str):
+    messages = load_zip_file(filename, world_name)
     messages = apply_april_fools_filter(messages)
 
     all = generate_d20_data(messages, user=None)
@@ -425,10 +425,11 @@ def run(filename: str):
         user_data['player'] = user
         d20_data.append(user_data)
 
-    with open('d20_data.json', 'w') as f:
+    with open(f'{world_name}_data.json', 'w') as f:
         json.dump(d20_data, f, indent=4)
 
 
 if __name__ == "__main__":
     filename = sys.argv[1]
-    run(filename)
+    world_name = sys.argv[2]
+    run(filename, world_name)

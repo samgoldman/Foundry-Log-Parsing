@@ -84,7 +84,12 @@ const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
 	  return table;
 	}
 
-d3.json('d20_data.json', (error, data) => {
+let world = 'salocaia';
+if (window.location.hash) {
+  world = window.location.hash
+}
+
+d3.json(`${world}_data.json`, (error, data) => {
   const column_name_map = {
     'player': 'Player',
     'roll_count': 'D20 Rolls',
