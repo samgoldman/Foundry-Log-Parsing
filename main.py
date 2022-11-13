@@ -409,7 +409,7 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
         'cha_ability_check_count': count_ability_checks(d20_ability_messages, 'cha'),
     } | generate_skill_data(d20_skill_messages)
 
-def run(filename: str, world_name: str):
+def run(filename: str, world_name: str, players: List[str]):
     messages = load_zip_file(filename, world_name)
     messages = apply_april_fools_filter(messages)
 
@@ -419,7 +419,7 @@ def run(filename: str, world_name: str):
         all
     ]
 
-    users = ['All Players', 'Gamemaster', 'threshprince', 'OneRandomThing', 'Igazsag', 'teagold']
+    users = ['All Players', 'Gamemaster'] + players
     for user in users:
         user_data = generate_d20_data(messages, user=user)
         user_data['player'] = user
@@ -432,4 +432,5 @@ def run(filename: str, world_name: str):
 if __name__ == "__main__":
     filename = sys.argv[1]
     world_name = sys.argv[2]
-    run(filename, world_name)
+    players = sys.argv[3:]
+    run(filename, world_name, players)
