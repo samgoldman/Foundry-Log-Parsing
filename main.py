@@ -69,7 +69,7 @@ class Die(object):
 
 class Roll(object):
 
-    def __init__(self, formula=None, roll_type=None, options=None, dice=None, terms=None, total=None, evaluated=None):
+    def __init__(self, formula=None, roll_type=None, options=None, dice=None, terms=None, total=None, evaluated=None, **kwargs):
         _dice = dice # Ignore `dice` - it is extremely rare that it's used
 
         self.formula = formula
@@ -87,15 +87,16 @@ class Roll(object):
         return f"{{{self.roll_type}: [{self.formula}] [{[d for d in self.dice]}] = [{self.total}]}}"
 
 class Message(object):
-    def __init__(self, user=None, data=None, timestamp=None, content=None, alias=None, flags=None):
+    def __init__(self, user=None, data=[], timestamp=None, content=None, alias=None, flags=None, raw=None):
         self.user = user
         self.alias = alias
         if not data is None:
-            self.roll = Roll(**data)
+            self.rolls = [Roll(**d) for d in data]
         else:
-            self.roll = None
+            self.rolls = []
         self.timestamp = datetime.fromtimestamp(timestamp)
         self.content = content
+        self.raw = raw
 
         self.saving_throw = None
         self.skill_check = None
@@ -129,10 +130,10 @@ class Message(object):
                     self.skill_check = dnd_flags['roll']['skillId']
 
     def get_dice(self) -> List[Die]:
-        if self.roll is None:
-            return []
-        roll: Roll = self.roll
-        return roll.dice
+        dice = []
+        for roll in self.rolls:
+            dice += roll.dice
+        return dice
 
     def has_d20(self) -> bool:
         dice = self.get_dice()
@@ -169,7 +170,7 @@ class Message(object):
         return self.hitDie
 
     def __str__(self):
-        return f"{self.timestamp} {self.user} {self.roll}"
+        return f"{self.timestamp} {self.user} {self.content} {self.rolls}"
 
 def load_zip_file(filename: str, world_name: str) -> List[Message]:
     import zipfile
@@ -185,17 +186,27 @@ def load_zip_file(filename: str, world_name: str) -> List[Message]:
         raw_data.append(json.loads(line))
     data = []
     for raw in raw_data:
-        d = raw["roll"] if "roll" in raw else None
+        if '$$deleted' in raw and raw['$$deleted']:
+            continue
+        roll_data = []
+        if "roll" in raw:
+            roll_data.append(raw["roll"])
+        if "rolls" in raw:
+            roll_data = raw["rolls"]
+
         alias = raw['speaker']['alias'] if 'alias' in raw['speaker'] else None
-        if type(d) == str:
-            d = json.loads(d)
+
+        for i in range(len(roll_data)):
+            if type(roll_data[i]) == str:
+                roll_data[i] = json.loads(roll_data[i])
         data.append({
             "user": user_map[raw['user']],
-            "data": d,
+            "data": roll_data,
             "timestamp": int(raw['timestamp'] / 1000),
             "content": raw['content'],
             "alias": alias,
-            "flags": raw['flags']
+            "flags": raw['flags'],
+            "raw": raw,
         })
     for d in data:
         if "data" in d and not d["data"] is None:
@@ -313,7 +324,7 @@ def average_final_d20_roll(messages: List[Message]) -> float:
     return total_value / count
 
 def average_d20_after_modifiers(messages: List[Message]) -> float:
-    total_value = sum([message.roll.total for message in messages])
+    total_value = sum(flatten([[roll.total for roll in message.rolls] for message in messages]))
     count = len(messages)
     return total_value / count
 
