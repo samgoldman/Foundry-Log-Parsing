@@ -86,7 +86,7 @@ const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
 
 let world = 'salocaia';
 if (window.location.hash) {
-  world = window.location.hash
+  world = window.location.hash.slice(1)
 }
 
 d3.json(`${world}_data.json`, (error, data) => {
