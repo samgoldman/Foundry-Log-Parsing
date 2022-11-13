@@ -253,7 +253,6 @@ def get_d20s(messages: List[Message]) -> List[Die]:
     return [die for die in dice if die.is_dx(20)]
 
 def get_d20_messages(messages: List[Message]) -> List[Message]:
-    dice = get_all_dice(messages)
     return [message for message in messages if message.has_d20()]
 
 def count_advantage(dice: List[Die]) -> int:
@@ -295,6 +294,9 @@ def get_d20_attack_messages(messages: List[Message]) -> List[Message]:
 def filter_user(messages: List[Message], user: str) -> List[Message]:
     return list(filter(lambda message: message.user == user, messages))
 
+def inverse_filter_user(messages: List[Message], user: str) -> List[Message]:
+    return list(filter(lambda message: message.user != user, messages))
+
 def average_raw_d20_roll(dice: List[Die]) -> float:
     all_active = [die.active_results[0] for die in dice]
     all_inactive = [die.inactive_results[0] for die in dice if len(die.inactive_results) > 0]
@@ -315,8 +317,26 @@ def average_d20_after_modifiers(messages: List[Message]) -> float:
     count = len(messages)
     return total_value / count
 
+def count_saves(messages: List[Message], type: str) -> int:
+    return len([message for message in messages if message.save_type() == type])
+
+def count_ability_checks(messages: List[Message], type: str) -> int:
+    return len([message for message in messages if message.ability_type() == type])
+
+def count_skill_checks(messages: List[Message], type: str) -> int:
+    return len([message for message in messages if message.skill_type() == type])
+
+def generate_skill_data(messages: List[Message]) -> Dict[str, int] | Dict[str, float]:
+    skills = {"acr":"Acrobatics","ani":"Animal Handling","arc":"Arcana","ath":"Athletics","dec":"Deception","his":"History","ins":"Insight","itm":"Intimidation","inv":"Investigation","med":"Medicine","nat":"Nature","prc":"Perception","prf":"Performance","per":"Persuasion","rel":"Religion","slt":"Sleight of Hand","ste":"Stealth","sur":"Survival"}
+    data = {}
+    for id in skills:
+        data[f"{id}_skill_count"] = count_skill_checks(messages, id)
+    return data
+
 def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
-    if not user is None:
+    if user == 'All Players':
+        messages = inverse_filter_user(messages, 'Gamemaster')
+    elif not user is None:
         messages = filter_user(messages, user)
 
     d20s = get_d20s(messages)
@@ -374,7 +394,20 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
         'average_save_after_modifiers': average_d20_after_modifiers(d20_save_messages),
         'average_skill_after_modifiers': average_d20_after_modifiers(d20_skill_messages),
         'average_ability_after_modifiers': average_d20_after_modifiers(d20_ability_messages),
-    }
+        'death_save_count': count_saves(d20_save_messages, 'death'),
+        'str_save_count': count_saves(d20_save_messages, 'str'),
+        'dex_save_count': count_saves(d20_save_messages, 'dex'),
+        'con_save_count': count_saves(d20_save_messages, 'con'),
+        'int_save_count': count_saves(d20_save_messages, 'int'),
+        'wis_save_count': count_saves(d20_save_messages, 'wis'),
+        'cha_save_count': count_saves(d20_save_messages, 'cha'),
+        'str_ability_check_count': count_ability_checks(d20_ability_messages, 'str'),
+        'dex_ability_check_count': count_ability_checks(d20_ability_messages, 'dex'),
+        'con_ability_check_count': count_ability_checks(d20_ability_messages, 'con'),
+        'int_ability_check_count': count_ability_checks(d20_ability_messages, 'int'),
+        'wis_ability_check_count': count_ability_checks(d20_ability_messages, 'wis'),
+        'cha_ability_check_count': count_ability_checks(d20_ability_messages, 'cha'),
+    } | generate_skill_data(d20_skill_messages)
 
 def run(filename: str):
     messages = load_zip_file(filename)
@@ -386,7 +419,7 @@ def run(filename: str):
         all
     ]
 
-    users = ['Gamemaster', 'threshprince', 'OneRandomThing', 'Igazsag', 'teagold']
+    users = ['All Players', 'Gamemaster', 'threshprince', 'OneRandomThing', 'Igazsag', 'teagold']
     for user in users:
         user_data = generate_d20_data(messages, user=user)
         user_data['player'] = user
