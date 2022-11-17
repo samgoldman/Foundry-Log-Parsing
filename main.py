@@ -347,20 +347,8 @@ def count_nat_1s(dice: List[Die]) -> int:
     return len([die for die in dice if die.is_nat_1()])
 
 
-def count_skill_check(messages: List[Message]) -> int:
-    return len([message for message in messages if message.is_skill_check()])
-
-
-def count_ability_check(messages: List[Message]) -> int:
-    return len([message for message in messages if message.is_ability_check()])
-
-
-def count_saving_throw(messages: List[Message]) -> int:
-    return len([message for message in messages if message.is_saving_throw()])
-
-
-def count_attack_roll(messages: List[Message]) -> int:
-    return len([message for message in messages if message.is_attack()])
+def count_msgs_if(messages: List[Message], function, expected) -> int:
+    return len([message for message in messages if function(message) == expected])
 
 
 def get_d20_skill_messages(messages: List[Message]) -> List[Message]:
@@ -414,12 +402,8 @@ def average_d20_after_modifiers(messages: List[Message]) -> float:
     return total_value / count
 
 
-def count_saves(messages: List[Message], skill_type: str) -> int:
-    return len([message for message in messages if message.save_type() == skill_type])
-
-
 def saving_throw_average(messages: List[Message], save_type: str) -> int:
-    count = count_saves(messages, save_type)
+    count = count_msgs_if(messages, Message.save_type, save_type)
     if count == 0:
         return 0.0
     return average_d20_after_modifiers(
@@ -427,14 +411,8 @@ def saving_throw_average(messages: List[Message], save_type: str) -> int:
     )
 
 
-def count_ability_checks(messages: List[Message], skill_type: str) -> int:
-    return len(
-        [message for message in messages if message.ability_type() == skill_type]
-    )
-
-
 def ability_check_average(messages: List[Message], ability_type: str) -> int:
-    count = count_ability_checks(messages, ability_type)
+    count = count_msgs_if(messages, Message.ability_type, ability_type)
     if count == 0:
         return 0.0
     return average_d20_after_modifiers(
@@ -442,12 +420,8 @@ def ability_check_average(messages: List[Message], ability_type: str) -> int:
     )
 
 
-def count_skill_checks(messages: List[Message], skill_type: str) -> int:
-    return len([message for message in messages if message.skill_type() == skill_type])
-
-
 def skill_check_average(messages: List[Message], skill_type: str) -> int:
-    count = count_skill_checks(messages, skill_type)
+    count = count_msgs_if(messages, Message.skill_type, skill_type)
     if count == 0:
         return 0.0
     return average_d20_after_modifiers(
@@ -478,7 +452,7 @@ def generate_skill_data(messages: List[Message]) -> Dict[str, float]:
     ]
     data = {}
     for id in skills:
-        data[f"{id}_skill_count"] = count_skill_checks(messages, id)
+        data[f"{id}_skill_count"] = count_msgs_if(messages, Message.skill_type, id)
         data[f"{id}_skill_average"] = skill_check_average(messages, id)
     return data
 
@@ -487,7 +461,7 @@ def generate_ability_data(messages: List[Message]) -> Dict[str, int] | Dict[str,
     abilities = ["str", "dex", "con", "wis", "int", "cha"]
     data = {}
     for id in abilities:
-        data[f"{id}_ability_count"] = count_ability_checks(messages, id)
+        data[f"{id}_ability_count"] = count_msgs_if(messages, Message.ability_type, id)
         data[f"{id}_ability_average"] = ability_check_average(messages, id)
     return data
 
@@ -496,7 +470,7 @@ def generate_save_data(messages: List[Message]) -> Dict[str, int] | Dict[str, fl
     skills = ["str", "dex", "con", "wis", "int", "cha", "death"]
     data = {}
     for id in skills:
-        data[f"{id}_save_count"] = count_saves(messages, id)
+        data[f"{id}_save_count"] = count_msgs_if(messages, Message.save_type, id)
         data[f"{id}_save_average"] = saving_throw_average(messages, id)
     return data
 
@@ -508,21 +482,21 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
         messages = filter_user(messages, user)
 
     d20s = get_d20s(messages)
-    d20s_messages = get_d20_messages(messages)
+    d20_messages = get_d20_messages(messages)
 
-    d20_attack_messages = get_d20_attack_messages(d20s_messages)
-    d20_save_messages = get_d20_save_messages(d20s_messages)
-    d20_skill_messages = get_d20_skill_messages(d20s_messages)
-    d20_ability_messages = get_d20_ability_messages(d20s_messages)
+    d20_attack_messages = get_d20_attack_messages(d20_messages)
+    d20_save_messages = get_d20_save_messages(d20_messages)
+    d20_skill_messages = get_d20_skill_messages(d20_messages)
+    d20_ability_messages = get_d20_ability_messages(d20_messages)
 
     d20_count = sum([die.number for die in d20s])
     roll_count = len(d20s)  # Number of rolls (advantage and disadvantage count as 1)
     advantage_count = count_advantage(d20s)
     disadvantage_count = count_disadvantage(d20s)
-    skill_check_count = count_skill_check(d20s_messages)
-    ability_check_count = count_ability_check(d20s_messages)
-    saving_throw_count = count_saving_throw(d20s_messages)
-    attack_roll_count = count_attack_roll(d20s_messages)
+    skill_check_count = count_msgs_if(d20_messages, Message.is_skill_check, True)
+    ability_check_count = count_msgs_if(d20_messages, Message.is_ability_check, True)
+    saving_throw_count = count_msgs_if(d20_messages, Message.is_saving_throw, True)
+    attack_roll_count = count_msgs_if(d20_messages, Message.is_attack, True)
     advantage_ratio = advantage_count / roll_count
     disadvantage_ratio = disadvantage_count / roll_count
 
@@ -557,8 +531,8 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
                 [die for die in d20s if die.is_advantage_nat_1()]
             ),
             "average_raw_d20_roll": average_raw_d20_roll(d20s),
-            "average_final_d20_roll": average_final_d20_roll(d20s_messages),
-            "average_d20_after_modifiers": average_d20_after_modifiers(d20s_messages),
+            "average_final_d20_roll": average_final_d20_roll(d20_messages),
+            "average_d20_after_modifiers": average_d20_after_modifiers(d20_messages),
             "average_attack_before_modifiers": average_final_d20_roll(
                 d20_attack_messages
             ),
