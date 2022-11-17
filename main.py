@@ -244,6 +244,9 @@ def load_zip_file(filename: str, world_name: str) -> List[Message]:
     raw_data = []
     for line in archive.open(f"{world_name}/data/messages.db"):
         raw_data.append(json.loads(line))
+
+    for line in open(f"chat.db"):
+        raw_data.append(json.loads(line))
     data = []
     for raw in raw_data:
         if "$$deleted" in raw and raw["$$deleted"]:
@@ -565,6 +568,19 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
     )
 
 
+class Session(object):
+    def __init__(self, message: Message):
+        self.min_time = message.timestamp
+        self.max_time = message.timestamp
+        self.count = 1
+
+    def in_session(self, message: Message):
+        return (message.timestamp - self.max_time).total_seconds() < 6*3600
+
+    def add_message(self, message: Message):
+        self.max_time = message.timestamp
+        self.count += 1
+
 def run(filename: str, world_name: str, players: List[str]):
     messages = load_zip_file(filename, world_name)
     messages = apply_april_fools_filter(messages)
@@ -581,6 +597,17 @@ def run(filename: str, world_name: str, players: List[str]):
 
     with open(f"./public/{world_name}_data.json", "w") as f:
         json.dump(d20_data, f, indent=4)
+
+    sessions: List[Session] = []
+    for message in messages:
+        added_to_session = False
+        for session in sessions:
+            if session.in_session(message):
+                session.add_message(message)
+                added_to_session = True
+                break
+        if not added_to_session:
+            sessions.append(Session(message))
 
 
 if __name__ == "__main__":
