@@ -331,8 +331,20 @@ def average_d20_after_modifiers(messages: List[Message]) -> float:
 def count_saves(messages: List[Message], skill_type: str) -> int:
     return len([message for message in messages if message.save_type() == skill_type])
 
+def saving_throw_average(messages: List[Message], save_type: str) -> int:
+    count = count_saves(messages, save_type)
+    if count == 0:
+        return 0.0
+    return average_d20_after_modifiers([message for message in messages if message.save_type() == save_type])
+
 def count_ability_checks(messages: List[Message], skill_type: str) -> int:
     return len([message for message in messages if message.ability_type() == skill_type])
+
+def ability_check_average(messages: List[Message], ability_type: str) -> int:
+    count = count_ability_checks(messages, ability_type)
+    if count == 0:
+        return 0.0
+    return average_d20_after_modifiers([message for message in messages if message.ability_type() == ability_type])
 
 def count_skill_checks(messages: List[Message], skill_type: str) -> int:
     return len([message for message in messages if message.skill_type() == skill_type])
@@ -344,11 +356,27 @@ def skill_check_average(messages: List[Message], skill_type: str) -> int:
     return average_d20_after_modifiers([message for message in messages if message.skill_type() == skill_type])
 
 def generate_skill_data(messages: List[Message]) -> Dict[str, float]:
-    skills = {"acr":"Acrobatics","ani":"Animal Handling","arc":"Arcana","ath":"Athletics","dec":"Deception","his":"History","ins":"Insight","itm":"Intimidation","inv":"Investigation","med":"Medicine","nat":"Nature","prc":"Perception","prf":"Performance","per":"Persuasion","rel":"Religion","slt":"Sleight of Hand","ste":"Stealth","sur":"Survival"}
+    skills = ["acr", "ani", "arc", "ath", "dec", "his", "ins", "itm", "inv", "med", "nat", "prc", "prf", "per", "rel", "slt", "ste", "sur"]
     data = {}
     for id in skills:
         data[f"{id}_skill_count"] = count_skill_checks(messages, id)
         data[f"{id}_skill_average"] = skill_check_average(messages, id)
+    return data
+
+def generate_ability_data(messages: List[Message]) -> Dict[str, int] | Dict[str, float]:
+    abilities = ["str", "dex", "con", "wis", "int", "cha"]
+    data = {}
+    for id in abilities:
+        data[f"{id}_ability_count"] = count_ability_checks(messages, id)
+        data[f"{id}_ability_average"] = ability_check_average(messages, id)
+    return data
+
+def generate_save_data(messages: List[Message]) -> Dict[str, int] | Dict[str, float]:
+    skills = ["str", "dex", "con", "wis", "int", "cha", "death"]
+    data = {}
+    for id in skills:
+        data[f"{id}_save_count"] = count_saves(messages, id)
+        data[f"{id}_save_average"] = saving_throw_average(messages, id)
     return data
 
 def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
@@ -412,21 +440,9 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
         'average_save_after_modifiers': average_d20_after_modifiers(d20_save_messages),
         'average_skill_after_modifiers': average_d20_after_modifiers(d20_skill_messages),
         'average_ability_after_modifiers': average_d20_after_modifiers(d20_ability_messages),
-        'death_save_count': count_saves(d20_save_messages, 'death'),
-        'str_save_count': count_saves(d20_save_messages, 'str'),
-        'dex_save_count': count_saves(d20_save_messages, 'dex'),
-        'con_save_count': count_saves(d20_save_messages, 'con'),
-        'int_save_count': count_saves(d20_save_messages, 'int'),
-        'wis_save_count': count_saves(d20_save_messages, 'wis'),
-        'cha_save_count': count_saves(d20_save_messages, 'cha'),
-        'str_ability_check_count': count_ability_checks(d20_ability_messages, 'str'),
-        'dex_ability_check_count': count_ability_checks(d20_ability_messages, 'dex'),
-        'con_ability_check_count': count_ability_checks(d20_ability_messages, 'con'),
-        'int_ability_check_count': count_ability_checks(d20_ability_messages, 'int'),
-        'wis_ability_check_count': count_ability_checks(d20_ability_messages, 'wis'),
-        'cha_ability_check_count': count_ability_checks(d20_ability_messages, 'cha'),
-        **generate_skill_data(d20_skill_messages)
-    }
+    } | generate_save_data(d20_save_messages) \
+      | generate_ability_data(d20_ability_messages) \
+      | generate_skill_data(d20_skill_messages)
 
 def run(filename: str, world_name: str, players: List[str]):
     messages = load_zip_file(filename, world_name)
