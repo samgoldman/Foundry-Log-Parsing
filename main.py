@@ -357,6 +357,7 @@ def count_msgs_if(messages: List[Message], function, expected) -> int:
 def get_matching_msgs(messages: List[Message], function, expected) -> int:
     return [message for message in messages if function(message) == expected]
 
+
 def inverse_filter_user(messages: List[Message], user: str) -> List[Message]:
     return list(filter(lambda message: message.user != user, messages))
 
@@ -474,7 +475,9 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
     d20_save_messages = get_matching_msgs(messages, Message.is_saving_throw, True)
     d20_skill_messages = get_matching_msgs(messages, Message.is_skill_check, True)
     d20_ability_messages = get_matching_msgs(messages, Message.is_ability_check, True)
-    d20_initiative_messages = get_matching_msgs(messages, Message.is_initiative_roll, True)
+    d20_initiative_messages = get_matching_msgs(
+        messages, Message.is_initiative_roll, True
+    )
 
     d20_count = sum([die.number for die in d20s])
     roll_count = len(d20s)  # Number of rolls (advantage and disadvantage count as 1)
@@ -484,7 +487,9 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
     ability_check_count = count_msgs_if(d20_messages, Message.is_ability_check, True)
     saving_throw_count = count_msgs_if(d20_messages, Message.is_saving_throw, True)
     attack_roll_count = count_msgs_if(d20_messages, Message.is_attack, True)
-    initiative_roll_count = count_msgs_if(d20_messages, Message.is_initiative_roll, True)
+    initiative_roll_count = count_msgs_if(
+        d20_messages, Message.is_initiative_roll, True
+    )
     advantage_ratio = advantage_count / roll_count
     disadvantage_ratio = disadvantage_count / roll_count
 
@@ -505,7 +510,9 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
             "attack_roll_count": attack_roll_count,
             "attack_roll_ratio": attack_roll_count / roll_count,
             "initiative_roll_count": initiative_roll_count,
-            "initiative_roll_ratio": 0.0 if initiative_roll_count == 0 else initiative_roll_count / roll_count,
+            "initiative_roll_ratio": 0.0
+            if initiative_roll_count == 0
+            else initiative_roll_count / roll_count,
             "nat_20_count": count_nat_20s(d20s),
             "nat_20_ratio": count_nat_20s(d20s) / roll_count,
             "nat_1_count": count_nat_1s(d20s),
