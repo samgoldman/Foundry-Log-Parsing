@@ -39,6 +39,7 @@ jobs:
         with:
           repository: samgoldman/Salocaia
           ssh-key: ${{ secrets.SALOCAIA_DEPLOY_KEY }}
+          path: ./salocaia
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
