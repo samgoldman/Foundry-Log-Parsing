@@ -327,10 +327,6 @@ def get_d20s(messages: List[Message]) -> List[Die]:
     return [die for die in dice if die.is_dx(20)]
 
 
-def get_d20_messages(messages: List[Message]) -> List[Message]:
-    return [message for message in messages if message.has_d20()]
-
-
 def count_advantage(dice: List[Die]) -> int:
     return len([die for die in dice if die.advantage])
 
@@ -348,28 +344,11 @@ def count_nat_1s(dice: List[Die]) -> int:
 
 
 def count_msgs_if(messages: List[Message], function, expected) -> int:
-    return len([message for message in messages if function(message) == expected])
+    return len(get_matching_msgs(messages, function, expected))
 
 
-def get_d20_skill_messages(messages: List[Message]) -> List[Message]:
-    return [message for message in messages if message.is_skill_check()]
-
-
-def get_d20_ability_messages(messages: List[Message]) -> List[Message]:
-    return [message for message in messages if message.is_ability_check()]
-
-
-def get_d20_save_messages(messages: List[Message]) -> List[Message]:
-    return [message for message in messages if message.is_saving_throw()]
-
-
-def get_d20_attack_messages(messages: List[Message]) -> List[Message]:
-    return [message for message in messages if message.is_attack()]
-
-
-def filter_user(messages: List[Message], user: str) -> List[Message]:
-    return list(filter(lambda message: message.user == user, messages))
-
+def get_matching_msgs(messages: List[Message], function, expected) -> int:
+    return [message for message in messages if function(message) == expected]
 
 def inverse_filter_user(messages: List[Message], user: str) -> List[Message]:
     return list(filter(lambda message: message.user != user, messages))
@@ -479,15 +458,15 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
     if user == "All Players":
         messages = inverse_filter_user(messages, "Gamemaster")
     elif not user is None:
-        messages = filter_user(messages, user)
+        messages = get_matching_msgs(messages, lambda m: m.user, user)
 
     d20s = get_d20s(messages)
-    d20_messages = get_d20_messages(messages)
+    d20_messages = get_matching_msgs(messages, Message.has_d20, True)
 
-    d20_attack_messages = get_d20_attack_messages(d20_messages)
-    d20_save_messages = get_d20_save_messages(d20_messages)
-    d20_skill_messages = get_d20_skill_messages(d20_messages)
-    d20_ability_messages = get_d20_ability_messages(d20_messages)
+    d20_attack_messages = get_matching_msgs(messages, Message.is_attack, True)
+    d20_save_messages = get_matching_msgs(messages, Message.is_saving_throw, True)
+    d20_skill_messages = get_matching_msgs(messages, Message.is_skill_check, True)
+    d20_ability_messages = get_matching_msgs(messages, Message.is_ability_check, True)
 
     d20_count = sum([die.number for die in d20s])
     roll_count = len(d20s)  # Number of rolls (advantage and disadvantage count as 1)
