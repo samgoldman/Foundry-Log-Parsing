@@ -231,22 +231,36 @@ class Message(object):
         return f"{self.timestamp} {self.user} {self.content} {self.rolls}"
 
 
-def load_zip_file(filename: str, world_name: str) -> List[Message]:
+def load_zip_files(filenames: List[str]) -> List[Message]:
     import zipfile
 
-    archive = zipfile.ZipFile(filename, "r")
-
     user_map = {None: "UNKNOWN USER"}
-    for line in archive.open(f"{world_name}/data/users.db"):
-        raw = json.loads(line)
-        user_map[raw["_id"]] = raw["name"]
-
+    ids = set()
     raw_data = []
-    for line in archive.open(f"{world_name}/data/messages.db"):
-        raw_data.append(json.loads(line))
 
-    for line in open(f"chat.db"):
-        raw_data.append(json.loads(line))
+    for filename in filenames:
+        archive = zipfile.ZipFile(filename, "r")
+
+        file = None
+        for f in archive.filelist:
+            if f.filename.endswith('users.db'):
+                file = f
+                break
+        for line in archive.open(file):
+            raw = json.loads(line)
+            user_map[raw["_id"]] = raw["name"]
+
+        file = None
+        for f in archive.filelist:
+            if f.filename.endswith('chat.db') or f.filename.endswith('messages.db'):
+                file = f
+                break
+        for line in archive.open(file):
+            data = json.loads(line)
+            if not data["_id"] in ids:
+                raw_data.append(data)
+                ids.add(data["_id"])
+
     data = []
     for raw in raw_data:
         if "$$deleted" in raw and raw["$$deleted"]:
@@ -581,8 +595,8 @@ class Session(object):
         self.max_time = message.timestamp
         self.count += 1
 
-def run(filename: str, world_name: str, players: List[str]):
-    messages = load_zip_file(filename, world_name)
+def run(filenames: List[str], world_name: str, players: List[str]):
+    messages = load_zip_files(filenames)
     messages = apply_april_fools_filter(messages)
 
     all = generate_d20_data(messages, user=None)
@@ -611,7 +625,12 @@ def run(filename: str, world_name: str, players: List[str]):
 
 
 if __name__ == "__main__":
-    filename = sys.argv[1]
-    world_name = sys.argv[2]
-    players = sys.argv[3:]
-    run(filename, world_name, players)
+    world_name = sys.argv[1]
+    filenames = []
+    players = []
+    for arg in sys.argv[2:]:
+        if arg.endswith('.zip'):
+            filenames.append(arg)
+        else:
+            players.append(arg)
+    run(filenames, world_name, players)
