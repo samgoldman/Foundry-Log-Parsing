@@ -34,6 +34,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Checkout Salocaia
+        uses: actions/checkout@v3
+        with:
+          repository: samgoldman/Salocaia
+          ssh-key: ${{ secrets.SALOCAIA_DEPLOY_KEY }}
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
