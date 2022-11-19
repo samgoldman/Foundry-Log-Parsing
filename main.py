@@ -243,7 +243,7 @@ def load_zip_files(filenames: List[str]) -> List[Message]:
 
         file = None
         for f in archive.filelist:
-            if f.filename.endswith('users.db'):
+            if f.filename.endswith("users.db"):
                 file = f
                 break
         for line in archive.open(file):
@@ -252,7 +252,7 @@ def load_zip_files(filenames: List[str]) -> List[Message]:
 
         file = None
         for f in archive.filelist:
-            if f.filename.endswith('chat.db') or f.filename.endswith('messages.db'):
+            if f.filename.endswith("chat.db") or f.filename.endswith("messages.db"):
                 file = f
                 break
         for line in archive.open(file):
@@ -387,6 +387,8 @@ def average_raw_d20_roll(dice: List[Die]) -> float:
     all = all_active + all_inactive
     total_value = sum(all)
     count = len(all)
+    if count == 0:
+        return 0
     return total_value / count
 
 
@@ -395,6 +397,8 @@ def average_final_d20_roll(messages: List[Message]) -> float:
     all_active = [die.active_results[0] for die in dice]
     total_value = sum(all_active)
     count = len(all_active)
+    if count == 0:
+        return 0
     return total_value / count
 
 
@@ -403,6 +407,8 @@ def average_d20_after_modifiers(messages: List[Message]) -> float:
         flatten([[roll.total for roll in message.rolls] for message in messages])
     )
     count = len(messages)
+    if count == 0:
+        return 0
     return total_value / count
 
 
@@ -507,8 +513,8 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
     initiative_roll_count = count_msgs_if(
         d20_messages, Message.is_initiative_roll, True
     )
-    advantage_ratio = advantage_count / roll_count
-    disadvantage_ratio = disadvantage_count / roll_count
+    advantage_ratio = 0 if roll_count == 0 else advantage_count / roll_count
+    disadvantage_ratio = 0 if roll_count == 0 else disadvantage_count / roll_count
 
     return (
         {
@@ -519,21 +525,29 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
             "advantage_ratio": advantage_ratio,
             "disadvantage_ratio": disadvantage_ratio,
             "skill_check_count": skill_check_count,
-            "skill_check_ratio": skill_check_count / roll_count,
+            "skill_check_ratio": 0
+            if roll_count == 0
+            else skill_check_count / roll_count,
             "ability_check_count": ability_check_count,
-            "ability_check_ratio": ability_check_count / roll_count,
+            "ability_check_ratio": 0
+            if roll_count == 0
+            else ability_check_count / roll_count,
             "saving_throw_count": saving_throw_count,
-            "saving_throw_ratio": saving_throw_count / roll_count,
+            "saving_throw_ratio": 0
+            if roll_count == 0
+            else saving_throw_count / roll_count,
             "attack_roll_count": attack_roll_count,
-            "attack_roll_ratio": attack_roll_count / roll_count,
+            "attack_roll_ratio": 0
+            if roll_count == 0
+            else attack_roll_count / roll_count,
             "initiative_roll_count": initiative_roll_count,
             "initiative_roll_ratio": 0.0
             if initiative_roll_count == 0
             else initiative_roll_count / roll_count,
             "nat_20_count": count_nat_20s(d20s),
-            "nat_20_ratio": count_nat_20s(d20s) / roll_count,
+            "nat_20_ratio": 0 if roll_count == 0 else count_nat_20s(d20s) / roll_count,
             "nat_1_count": count_nat_1s(d20s),
-            "nat_1_ratio": count_nat_1s(d20s) / roll_count,
+            "nat_1_ratio": 0 if roll_count == 0 else count_nat_1s(d20s) / roll_count,
             "stolen_nat_20_count": len([die for die in d20s if die.is_stolen_nat_20()]),
             "super_nat_20_count": len([die for die in d20s if die.is_super_nat_20()]),
             "disadvantage_nat_20_count": len(
@@ -584,16 +598,19 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
 
 class Session(object):
     def __init__(self, message: Message):
+        self.messages = [message]
         self.min_time = message.timestamp
         self.max_time = message.timestamp
         self.count = 1
 
     def in_session(self, message: Message):
-        return (message.timestamp - self.max_time).total_seconds() < 6*3600
+        return (message.timestamp - self.max_time).total_seconds() < 24 * 3600
 
     def add_message(self, message: Message):
+        self.messages.append(message)
         self.max_time = message.timestamp
         self.count += 1
+
 
 def run(filenames: List[str], world_name: str, players: List[str]):
     messages = load_zip_files(filenames)
@@ -623,13 +640,29 @@ def run(filenames: List[str], world_name: str, players: List[str]):
         if not added_to_session:
             sessions.append(Session(message))
 
+    sessions = [s for s in sessions if s.count > 10]
+
+    prev_session_messages = sessions[-1].messages
+    all = generate_d20_data(prev_session_messages, user=None)
+    all["player"] = "All"
+    d20_data = [all]
+
+    users = ["All Players", "Gamemaster"] + players
+    for user in users:
+        user_data = generate_d20_data(prev_session_messages, user=user)
+        user_data["player"] = user
+        d20_data.append(user_data)
+
+    with open(f"./public/{world_name}_data_prev_session.json", "w") as f:
+        json.dump(d20_data, f, indent=4)
+
 
 if __name__ == "__main__":
     world_name = sys.argv[1]
     filenames = []
     players = []
     for arg in sys.argv[2:]:
-        if arg.endswith('.zip'):
+        if arg.endswith(".zip"):
             filenames.append(arg)
         else:
             players.append(arg)

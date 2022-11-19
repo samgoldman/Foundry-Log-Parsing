@@ -85,78 +85,80 @@ if (window.location.hash) {
   world = window.location.hash.slice(1);
 }
 
-d3.json(`${world}_data.json`, (error, data) => {
-  const column_name_map = {
-    player: "Player",
-    roll_count: "D20 Rolls",
-    advantage_count: "Rolls with Advantage",
-    disadvantage_count: "Rolls with Disadvantage",
-    advantage_ratio: "% Advantage",
-    disadvantage_ratio: "% Disadvantage",
-    attack_roll_count: "Attacks",
-    attack_roll_ratio: "% Attacks",
-    saving_throw_count: "Saves",
-    saving_throw_ratio: "% Saves",
-    ability_check_count: "Ability Checks",
-    ability_check_ratio: "% Ability Checks",
-    skill_check_count: "Skill Checks",
-    skill_check_ratio: "% Skill Checks",
-    initiative_roll_count: "Initiative Rolls",
-    initiative_roll_ratio: "% Initiative Rolls",
-    nat_20_count: "Nat 20s",
-    nat_20_ratio: "% Nat 20s",
-    nat_1_count: "Nat 1s",
-    nat_1_ratio: "% Nat 1s",
-    stolen_nat_20_count: "Stolen Nat 20s",
-    super_nat_20_count: "Super Nat 20s",
-    disadvantage_nat_20_count: "Disadvantage Nat 20s",
-    dropped_nat_1_count: "Dropped Nat 1s",
-    super_nat_1_count: "Super Nat 1s",
-    advantage_nat_1_count: "Advantage Nat 1s",
-    average_raw_d20_roll: "Raw D20 (inc. dropped)",
-    average_final_d20_roll: "Raw D20 (after adv./disadv.)",
-    average_d20_after_modifiers: "D20 after Mods",
-    average_attack_before_modifiers: "Attacks before Mods",
-    average_initiative_before_modifiers: "Initiative before Mods",
-    average_save_before_modifiers: "Saves before Mods",
-    average_skill_before_modifiers: "Skill Checks before Mods",
-    average_ability_before_modifiers: "Ability Checks before Mods",
-    average_attack_after_modifiers: "Attacks after Mods",
-    average_initiative_after_modifiers: "Initiative after Mods",
-    average_save_after_modifiers: "Saves after Mods",
-    average_skill_after_modifiers: "Skill Checks after Mods",
-    average_ability_after_modifiers: "Ability Checks after Mods",
-  };
-  const column_pct_map = {
-    advantage_ratio: true,
-    disadvantage_ratio: true,
-    attack_roll_ratio: true,
-    initiative_roll_ratio: true,
-    saving_throw_ratio: true,
-    ability_check_ratio: true,
-    skill_check_ratio: true,
-    nat_20_ratio: true,
-    nat_1_ratio: true,
-  };
-  const column_roll_fmt_map = {
-    average_raw_d20_roll: true,
-    average_final_d20_roll: true,
-    average_d20_after_modifiers: true,
-    average_attack_before_modifiers: true,
-    average_initiative_before_modifiers: true,
-    average_save_before_modifiers: true,
-    average_skill_before_modifiers: true,
-    average_ability_before_modifiers: true,
-    average_attack_after_modifiers: true,
-    average_initiative_after_modifiers: true,
-    average_save_after_modifiers: true,
-    average_skill_after_modifiers: true,
-    average_ability_after_modifiers: true,
-  };
+d3.queue()
+  .defer(d3.json, `${world}_data.json`)
+  .await((error, d20_data) => {
+    const column_name_map = {
+      player: "Player",
+      roll_count: "D20 Rolls",
+      advantage_count: "Rolls with Advantage",
+      disadvantage_count: "Rolls with Disadvantage",
+      advantage_ratio: "% Advantage",
+      disadvantage_ratio: "% Disadvantage",
+      attack_roll_count: "Attacks",
+      attack_roll_ratio: "% Attacks",
+      saving_throw_count: "Saves",
+      saving_throw_ratio: "% Saves",
+      ability_check_count: "Ability Checks",
+      ability_check_ratio: "% Ability Checks",
+      skill_check_count: "Skill Checks",
+      skill_check_ratio: "% Skill Checks",
+      initiative_roll_count: "Initiative Rolls",
+      initiative_roll_ratio: "% Initiative Rolls",
+      nat_20_count: "Nat 20s",
+      nat_20_ratio: "% Nat 20s",
+      nat_1_count: "Nat 1s",
+      nat_1_ratio: "% Nat 1s",
+      stolen_nat_20_count: "Stolen Nat 20s",
+      super_nat_20_count: "Super Nat 20s",
+      disadvantage_nat_20_count: "Disadvantage Nat 20s",
+      dropped_nat_1_count: "Dropped Nat 1s",
+      super_nat_1_count: "Super Nat 1s",
+      advantage_nat_1_count: "Advantage Nat 1s",
+      average_raw_d20_roll: "Raw D20 (inc. dropped)",
+      average_final_d20_roll: "Raw D20 (after adv./disadv.)",
+      average_d20_after_modifiers: "D20 after Mods",
+      average_attack_before_modifiers: "Attacks before Mods",
+      average_initiative_before_modifiers: "Initiative before Mods",
+      average_save_before_modifiers: "Saves before Mods",
+      average_skill_before_modifiers: "Skill Checks before Mods",
+      average_ability_before_modifiers: "Ability Checks before Mods",
+      average_attack_after_modifiers: "Attacks after Mods",
+      average_initiative_after_modifiers: "Initiative after Mods",
+      average_save_after_modifiers: "Saves after Mods",
+      average_skill_after_modifiers: "Skill Checks after Mods",
+      average_ability_after_modifiers: "Ability Checks after Mods",
+    };
+    const column_pct_map = {
+      advantage_ratio: true,
+      disadvantage_ratio: true,
+      attack_roll_ratio: true,
+      initiative_roll_ratio: true,
+      saving_throw_ratio: true,
+      ability_check_ratio: true,
+      skill_check_ratio: true,
+      nat_20_ratio: true,
+      nat_1_ratio: true,
+    };
+    const column_roll_fmt_map = {
+      average_raw_d20_roll: true,
+      average_final_d20_roll: true,
+      average_d20_after_modifiers: true,
+      average_attack_before_modifiers: true,
+      average_initiative_before_modifiers: true,
+      average_save_before_modifiers: true,
+      average_skill_before_modifiers: true,
+      average_ability_before_modifiers: true,
+      average_attack_after_modifiers: true,
+      average_initiative_after_modifiers: true,
+      average_save_after_modifiers: true,
+      average_skill_after_modifiers: true,
+      average_ability_after_modifiers: true,
+    };
 
   tabulate(
     "#advantage",
-    data,
+    d20_data,
     [
       "player",
       "roll_count",
@@ -171,7 +173,7 @@ d3.json(`${world}_data.json`, (error, data) => {
   );
   tabulate(
     "#type_of_roll",
-    data,
+    d20_data,
     [
       "player",
       "roll_count",
@@ -192,7 +194,7 @@ d3.json(`${world}_data.json`, (error, data) => {
   );
   tabulate(
     "#crits",
-    data,
+    d20_data,
     [
       "player",
       "roll_count",
@@ -213,7 +215,7 @@ d3.json(`${world}_data.json`, (error, data) => {
   );
   tabulate(
     "#d20_performance_by_type",
-    data,
+    d20_data,
     [
       "player",
       "roll_count",
@@ -293,7 +295,7 @@ d3.json(`${world}_data.json`, (error, data) => {
 
   tabulate(
     "#save_specific_data",
-    data,
+    d20_data,
     specific_save_columns,
     column_name_map,
     column_pct_map,
@@ -301,7 +303,7 @@ d3.json(`${world}_data.json`, (error, data) => {
   );
   tabulate(
     "#ability_specific_data",
-    data,
+    d20_data,
     specific_ability_columns,
     column_name_map,
     column_pct_map,
@@ -309,7 +311,7 @@ d3.json(`${world}_data.json`, (error, data) => {
   );
   tabulate(
     "#skill_specific_data1",
-    data,
+    d20_data,
     skill_count_columns,
     column_name_map,
     column_pct_map,
@@ -317,7 +319,7 @@ d3.json(`${world}_data.json`, (error, data) => {
   );
   tabulate(
     "#skill_specific_data2",
-    data,
+    d20_data,
     skill_average_columns,
     column_name_map,
     column_pct_map,
