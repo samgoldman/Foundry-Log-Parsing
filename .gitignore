@@ -4,3 +4,8 @@ venv/
 *.zip
 *.json
 salocaia*/
+
+# Added by cargo
+
+/target
+/Cargo.lock
