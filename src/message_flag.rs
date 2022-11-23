@@ -1,5 +1,7 @@
 use serde::Deserialize;
 
+use crate::item::Item;
+
 #[derive(Debug, PartialEq, Eq, Deserialize)]
 #[serde(tag = "abilityId")]
 #[serde(deny_unknown_fields)]
@@ -16,8 +18,6 @@ pub enum SaveType {
     Wisdom,
     #[serde(rename = "cha")]
     Charisma,
-    #[serde(rename = "death")]
-    Death,
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
@@ -88,6 +88,16 @@ pub struct ItemId {
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
+#[serde(tag = "versatile")]
+#[serde(deny_unknown_fields)]
+pub struct DamageRollFlags {
+    #[serde(flatten, rename = "itemId")]
+    item_id: ItemId,
+    #[serde(default)]
+    versatile: bool,
+}
+
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 #[serde(tag = "type")]
 #[serde(deny_unknown_fields)]
 pub enum RollType {
@@ -99,20 +109,46 @@ pub enum RollType {
     SkillCheck(Skill),
     #[serde(rename = "attack")]
     Attack(ItemId),
+    #[serde(rename = "hitDie")]
+    HitDie,
+    #[serde(rename = "damage")]
+    Damage(DamageRollFlags),
+    #[serde(rename = "hitPoints")]
+    HitPoints,
+    #[serde(rename = "death")]
+    Death,
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub enum Dnd5eFlag {
     Roll(RollType),
+    ItemData(Item),
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CoreFlag {
-    #[serde(rename = "canPopout")]
+    #[serde(rename = "canPopout", default)]
     pub can_popout: bool,
+    #[serde(rename = "initiativeRoll", default)]
+    pub initiative_roll: bool,
+    #[serde(rename = "RollTable", default)]
+    pub roll_table: String,
+}
+
+#[derive(Debug, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PolyglotFlag {
+    pub language: String,
+}
+
+#[derive(Debug, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub enum MonksLittleDetailsFlag {
+    #[serde(rename = "roundmarker")]
+    RoundMarker(bool),
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
@@ -121,6 +157,9 @@ pub struct CoreFlag {
 pub enum MessageFlag {
     DnD5E(Dnd5eFlag),
     Core(CoreFlag),
+    Polyglot(PolyglotFlag),
+    #[serde(rename = "monks-little-details")]
+    MonksLittleDetails(MonksLittleDetailsFlag),
 }
 
 #[cfg(test)]
@@ -150,7 +189,6 @@ mod tests {
     test_deserialize_saving_throw!(deserialize_int_saving_throw, "int", SaveType::Intelligence);
     test_deserialize_saving_throw!(deserialize_wis_saving_throw, "wis", SaveType::Wisdom);
     test_deserialize_saving_throw!(deserialize_cha_saving_throw, "cha", SaveType::Charisma);
-    test_deserialize_saving_throw!(deserialize_death_saving_throw, "death", SaveType::Death);
 
     macro_rules! test_deserialize_ability_check {
         ($fn:ident, $short:literal, $expected:expr) => {
@@ -231,6 +269,8 @@ mod tests {
         assert_eq!(
             MessageFlag::Core(CoreFlag {
                 can_popout: true,
+                initiative_roll: false,
+                roll_table: String::new(),
             }),
             serde_json::from_str(&json).unwrap()
         );
