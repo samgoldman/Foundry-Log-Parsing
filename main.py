@@ -2,7 +2,7 @@ import json
 import sys
 from copy import deepcopy
 from datetime import datetime
-from typing import Dict, List
+from typing import Any, Dict, List, Mapping, Union
 
 
 class Die(object):
@@ -200,13 +200,13 @@ class Message(object):
     def is_saving_throw(self) -> bool:
         return not self.saving_throw is None
 
-    def save_type(self) -> str:
+    def save_type(self) -> str | None:
         return self.saving_throw
 
     def is_skill_check(self) -> bool:
         return not self.skill_check is None
 
-    def skill_type(self) -> str:
+    def skill_type(self) -> str | None:
         return self.skill_check
 
     def is_ability_check(self) -> bool:
@@ -215,7 +215,7 @@ class Message(object):
     def is_initiative_roll(self) -> bool:
         return self.initiative
 
-    def ability_type(self) -> str:
+    def ability_type(self) -> str | None:
         return self.ability_check
 
     def is_attack(self) -> bool:
@@ -246,6 +246,11 @@ def load_zip_files(filenames: List[str]) -> List[Message]:
             if f.filename.endswith("users.db"):
                 file = f
                 break
+
+        if file is None:
+            print(f"Could not find users.db in {filename}")
+            exit(1)
+
         for line in archive.open(file):
             raw = json.loads(line)
             user_map[raw["_id"]] = raw["name"]
@@ -255,6 +260,11 @@ def load_zip_files(filenames: List[str]) -> List[Message]:
             if f.filename.endswith("chat.db") or f.filename.endswith("messages.db"):
                 file = f
                 break
+
+        if file is None:
+            print(f"Could not find chat.db or messages.db in {filename}")
+            exit(1)
+
         for line in archive.open(file):
             data = json.loads(line)
             if not data["_id"] in ids:
@@ -297,7 +307,7 @@ def load_zip_files(filenames: List[str]) -> List[Message]:
     return data
 
 
-def flatten(l):
+def flatten(l: List[List[Any]]) -> List[Any]:
     return [item for sublist in l for item in sublist]
 
 
@@ -319,8 +329,8 @@ def apply_april_fools_filter(messages: List[Message]) -> List[Message]:
 
 
 def get_all_dice(messages: List[Message]) -> List[Die]:
-    dice = [m.get_dice() for m in messages]
-    dice = flatten(dice)
+    dice_nested = [m.get_dice() for m in messages]
+    dice = flatten(dice_nested)
     return dice
 
 
@@ -371,7 +381,7 @@ def count_msgs_if(messages: List[Message], function, expected) -> int:
     return len(get_matching_msgs(messages, function, expected))
 
 
-def get_matching_msgs(messages: List[Message], function, expected) -> int:
+def get_matching_msgs(messages: List[Message], function, expected) -> List[Message]:
     return [message for message in messages if function(message) == expected]
 
 
@@ -412,7 +422,7 @@ def average_d20_after_modifiers(messages: List[Message]) -> float:
     return total_value / count
 
 
-def saving_throw_average(messages: List[Message], save_type: str) -> int:
+def saving_throw_average(messages: List[Message], save_type: str) -> float:
     count = count_msgs_if(messages, Message.save_type, save_type)
     if count == 0:
         return 0.0
@@ -421,7 +431,7 @@ def saving_throw_average(messages: List[Message], save_type: str) -> int:
     )
 
 
-def ability_check_average(messages: List[Message], ability_type: str) -> int:
+def ability_check_average(messages: List[Message], ability_type: str) -> float:
     count = count_msgs_if(messages, Message.ability_type, ability_type)
     if count == 0:
         return 0.0
@@ -430,7 +440,7 @@ def ability_check_average(messages: List[Message], ability_type: str) -> int:
     )
 
 
-def skill_check_average(messages: List[Message], skill_type: str) -> int:
+def skill_check_average(messages: List[Message], skill_type: str) -> float:
     count = count_msgs_if(messages, Message.skill_type, skill_type)
     if count == 0:
         return 0.0
@@ -439,7 +449,7 @@ def skill_check_average(messages: List[Message], skill_type: str) -> int:
     )
 
 
-def generate_skill_data(messages: List[Message]) -> Dict[str, float]:
+def generate_skill_data(messages: List[Message]) -> Mapping[str, Union[float, str, int]]:
     skills = [
         "acr",
         "ani",
@@ -462,30 +472,30 @@ def generate_skill_data(messages: List[Message]) -> Dict[str, float]:
     ]
     data = {}
     for id in skills:
-        data[f"{id}_skill_count"] = count_msgs_if(messages, Message.skill_type, id)
         data[f"{id}_skill_average"] = skill_check_average(messages, id)
+        data[f"{id}_skill_count"] = count_msgs_if(messages, Message.skill_type, id)
     return data
 
 
-def generate_ability_data(messages: List[Message]) -> Dict[str, int] | Dict[str, float]:
+def generate_ability_data(messages: List[Message]) -> Mapping[str, Union[float, str]]:
     abilities = ["str", "dex", "con", "wis", "int", "cha"]
     data = {}
     for id in abilities:
-        data[f"{id}_ability_count"] = count_msgs_if(messages, Message.ability_type, id)
         data[f"{id}_ability_average"] = ability_check_average(messages, id)
+        data[f"{id}_ability_count"] = count_msgs_if(messages, Message.ability_type, id)
     return data
 
 
-def generate_save_data(messages: List[Message]) -> Dict[str, int] | Dict[str, float]:
+def generate_save_data(messages: List[Message]) -> Mapping[str, Union[float, str]]:
     skills = ["str", "dex", "con", "wis", "int", "cha", "death"]
     data = {}
     for id in skills:
-        data[f"{id}_save_count"] = count_msgs_if(messages, Message.save_type, id)
         data[f"{id}_save_average"] = saving_throw_average(messages, id)
+        data[f"{id}_save_count"] = count_msgs_if(messages, Message.save_type, id)
     return data
 
 
-def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
+def generate_d20_data(messages: List[Message], user=None) -> Dict[str, Union[float, str]]:
     if user == "All Players":
         messages = inverse_filter_user(messages, "Gamemaster")
     elif not user is None:
@@ -506,13 +516,11 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, float]:
     roll_count = len(d20s)  # Number of rolls (advantage and disadvantage count as 1)
     advantage_count = count_advantage(d20s)
     disadvantage_count = count_disadvantage(d20s)
-    skill_check_count = count_msgs_if(d20_messages, Message.is_skill_check, True)
-    ability_check_count = count_msgs_if(d20_messages, Message.is_ability_check, True)
-    saving_throw_count = count_msgs_if(d20_messages, Message.is_saving_throw, True)
-    attack_roll_count = count_msgs_if(d20_messages, Message.is_attack, True)
-    initiative_roll_count = count_msgs_if(
-        d20_messages, Message.is_initiative_roll, True
-    )
+    skill_check_count = len(d20_skill_messages)
+    ability_check_count = len(d20_ability_messages)
+    saving_throw_count = len(d20_save_messages)
+    attack_roll_count = len(d20_attack_messages)
+    initiative_roll_count = len(d20_initiative_messages)
     advantage_ratio = 0 if roll_count == 0 else advantage_count / roll_count
     disadvantage_ratio = 0 if roll_count == 0 else disadvantage_count / roll_count
 
