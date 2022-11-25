@@ -626,9 +626,6 @@ def run(filenames: List[str], world_name: str, players: List[str]):
         user_data["player"] = user
         d20_data.append(user_data)
 
-    with open(f"./public/{world_name}_data.json", "w") as f:
-        json.dump(d20_data, f, indent=4)
-
     sessions: List[Session] = []
     for message in messages:
         added_to_session = False
@@ -645,16 +642,24 @@ def run(filenames: List[str], world_name: str, players: List[str]):
     prev_session_messages = sessions[-1].messages
     all = generate_d20_data(prev_session_messages, user=None)
     all["player"] = "All"
-    d20_data = [all]
+    d20_data_prev_session = [all]
 
     users = ["All Players", "Gamemaster"] + players
     for user in users:
         user_data = generate_d20_data(prev_session_messages, user=user)
         user_data["player"] = user
-        d20_data.append(user_data)
+        d20_data_prev_session.append(user_data)
 
-    with open(f"./public/{world_name}_data_prev_session.json", "w") as f:
+    for i in range(len(d20_data)):
+        for (key, value) in d20_data_prev_session[i].items():
+            if "count" in key:
+                d20_data[i][f"{key}_prev"] = value
+
+
+    with open(f"./public/{world_name}_data.json", "w") as f:
+        print(f"./public/{world_name}_data.json")
         json.dump(d20_data, f, indent=4)
+
 
 
 if __name__ == "__main__":
