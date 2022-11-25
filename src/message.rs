@@ -58,9 +58,11 @@ struct Speaker {
 
 #[cfg(test)]
 mod tests {
+    use std::{io::{self, BufReader, BufRead}, fs::File};
+
     use time::OffsetDateTime;
 
-    use crate::message_flag::{Dnd5eFlag, ItemId, RollType};
+    use crate::{message_flag::{Dnd5eFlag, RollType}, item::ItemId};
 
     use super::*;
 
@@ -196,5 +198,32 @@ mod tests {
     fn test_13() {
         let json = r#"{"type":5,"user":"cm6WmS8goi7Z7Uy8","timestamp":1648865345329,"flavor":"Longsword - Damage Roll (Slashing)","content":"13","speaker":{"scene":"qcD0BZqVXnO5r9wm","token":"bu30H81zLFQOEaVl","actor":"Qk73vtVpU12ueYEC","alias":"Warrior"},"whisper":[],"blind":false,"sound":"sounds/dice.wav","emote":false,"flags":{"dnd5e":{"roll":{"type":"damage","itemId":"UnHaQcZRD3uk2yDo","versatile":true}}},"_id":"qpUTyi8BHyMa4zpa","rolls":["{\"class\":\"DamageRoll\",\"options\":{\"flavor\":\"Longsword - Damage Roll (Slashing)\",\"critical\":false,\"criticalBonusDice\":0,\"multiplyNumeric\":false,\"powerfulCritical\":false,\"rollMode\":\"publicroll\"},\"dice\":[],\"formula\":\"1d10 + 4\",\"terms\":[{\"class\":\"Die\",\"options\":{\"baseNumber\":1},\"evaluated\":true,\"number\":1,\"faces\":10,\"modifiers\":[],\"results\":[{\"result\":9,\"active\":true}]},{\"class\":\"OperatorTerm\",\"options\":{},\"evaluated\":true,\"operator\":\"+\"},{\"class\":\"NumericTerm\",\"options\":{},\"evaluated\":true,\"number\":4}],\"total\":13,\"evaluated\":true}"]}"#;
         serde_json::from_str::<Message>(&json).unwrap();
+    }
+
+    #[test]
+    #[ignore]
+    fn test_all() -> io::Result<()> {
+        let file = File::open("salocaia/data/messages.db")?;
+        let reader = BufReader::new(file);
+
+        let mut i = 1;
+        let mut errors = 0;
+        for line in reader.lines() {
+            let line = line.unwrap();
+            if line.contains("$$deleted") {
+                i += 1;
+                continue;
+            }
+            if serde_json::from_str::<Message>(line.as_str()).is_err() {
+                println!("salocaia/data/messages.db:{}", i);
+                errors += 1;
+            }
+            i += 1;
+        }
+
+        if errors > 0 {
+            panic!("{} errors", errors);
+        }
+        Ok(())
     }
 }

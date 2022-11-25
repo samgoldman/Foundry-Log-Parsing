@@ -1,9 +1,9 @@
+use serde::de::IntoDeserializer;
 use serde::Deserialize;
 
-use crate::item::Item;
+use crate::item::{Item, ItemId};
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
-#[serde(tag = "abilityId")]
 #[serde(deny_unknown_fields)]
 pub enum SaveType {
     #[serde(rename = "str")]
@@ -21,8 +21,6 @@ pub enum SaveType {
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
-#[serde(tag = "abilityId")]
-#[serde(deny_unknown_fields)]
 pub enum Ability {
     #[serde(rename = "str")]
     Strength,
@@ -36,6 +34,19 @@ pub enum Ability {
     Wisdom,
     #[serde(rename = "cha")]
     Charisma,
+}
+
+pub fn empty_string_as_none<'de, D, T>(de: D) -> Result<Option<T>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: serde::Deserialize<'de>,
+{
+    let opt = Option::<String>::deserialize(de)?;
+    let opt = opt.as_ref().map(String::as_str);
+    match opt {
+        None | Some("") => Ok(None),
+        Some(s) => T::deserialize(s.into_deserializer()).map(Some)
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
@@ -81,30 +92,20 @@ pub enum Skill {
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct ItemId {
-    #[serde(rename = "itemId")]
-    pub id: String,
-}
-
-#[derive(Debug, PartialEq, Eq, Deserialize)]
-#[serde(tag = "versatile")]
-#[serde(deny_unknown_fields)]
-pub struct DamageRollFlags {
-    #[serde(flatten, rename = "itemId")]
-    item_id: ItemId,
-    #[serde(default)]
-    versatile: bool,
-}
-
-#[derive(Debug, PartialEq, Eq, Deserialize)]
 #[serde(tag = "type")]
+#[serde(rename = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub enum RollType {
     #[serde(rename = "save")]
-    SavingThrow(SaveType),
+    SavingThrow{
+        #[serde(rename = "abilityId")]
+        ability: SaveType
+    },
     #[serde(rename = "ability")]
-    AbilityCheck(Ability),
+    AbilityCheck {
+        #[serde(rename = "abilityId")]
+        ability: Ability
+    },
     #[serde(rename = "skill")]
     SkillCheck(Skill),
     #[serde(rename = "attack")]
@@ -112,7 +113,12 @@ pub enum RollType {
     #[serde(rename = "hitDie")]
     HitDie,
     #[serde(rename = "damage")]
-    Damage(DamageRollFlags),
+    Damage {
+        #[serde(deserialize_with = "crate::item::deserialize_item_id", rename = "itemId")]
+        item_id: ItemId,
+        #[serde(default)]
+        versatile: bool,
+    },
     #[serde(rename = "hitPoints")]
     HitPoints,
     #[serde(rename = "death")]
@@ -176,7 +182,7 @@ mod tests {
                 );
 
                 assert_eq!(
-                    MessageFlag::DnD5E(Dnd5eFlag::Roll(RollType::SavingThrow($expected))),
+                    MessageFlag::DnD5E(Dnd5eFlag::Roll(RollType::SavingThrow { ability: $expected })),
                     serde_json::from_str(&json).unwrap()
                 );
             }
@@ -200,7 +206,7 @@ mod tests {
                 );
 
                 assert_eq!(
-                    MessageFlag::DnD5E(Dnd5eFlag::Roll(RollType::AbilityCheck($expected))),
+                    MessageFlag::DnD5E(Dnd5eFlag::Roll(RollType::AbilityCheck {ability: $expected })),
                     serde_json::from_str(&json).unwrap()
                 );
             }
