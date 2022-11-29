@@ -4,7 +4,6 @@ from copy import deepcopy
 from datetime import datetime
 from typing import Any, Dict, List, Mapping, Union
 
-
 class Die(object):
     def __init__(
         self,
@@ -513,7 +512,7 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, Union[flo
     )
 
     d20_count = sum([die.number for die in d20s])
-    roll_count = len(d20s)  # Number of rolls (advantage and disadvantage count as 1)
+    roll_count = len(d20_messages)  # Number of rolls (advantage and disadvantage count as 1)
     advantage_count = count_advantage(d20s)
     disadvantage_count = count_disadvantage(d20s)
     skill_check_count = len(d20_skill_messages)
@@ -668,6 +667,16 @@ def run(filenames: List[str], world_name: str, players: List[str]):
         print(f"./public/{world_name}_data.json")
         json.dump(d20_data, f, indent=4)
 
+    v2_structure = {
+        "world": world_name,
+        "players": players,
+    }
+    for i in d20_data:
+        v2_structure[i["player"]] = i
+
+    with open(f"./public/{world_name}_data_v2.json", "w") as f:
+        print(f"./public/{world_name}_data_v2.json")
+        json.dump(v2_structure, f, indent=4)
 
 
 if __name__ == "__main__":
