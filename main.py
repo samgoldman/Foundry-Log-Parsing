@@ -401,6 +401,19 @@ def average_raw_d20_roll(dice: List[Die]) -> float:
     return total_value / count
 
 
+def average_raw_roll(dice: List[Die]) -> float:
+    all_active = [die.active_results[0] for die in dice]
+    all_inactive = [
+        die.inactive_results[0] for die in dice if len(die.inactive_results) > 0
+    ]
+    all = all_active + all_inactive
+    total_value = sum(all)
+    count = len(all)
+    if count == 0:
+        return 0
+    return total_value / count
+
+
 def average_final_d20_roll(messages: List[Message]) -> float:
     dice = get_d20s(messages)
     all_active = [die.active_results[0] for die in dice]
@@ -500,12 +513,16 @@ def get_dx_raw_count(messages: List[Message], x: int) -> int:
     return sum([die.number for die in dxs])
 
 
-def generate_raw_die_counts(messages: List[Message]) -> Mapping[str, Union[float, str]]:
+def generate_raw_die_stats(messages: List[Message]) -> Mapping[str, Union[float, str]]:
     dice = [347, 100, 20, 12, 10, 8, 6, 4]
 
     data = {}
     for x in dice:
-        data[f"d{x}_raw_count"] = get_dx_raw_count(messages, x)
+        count = get_dx_raw_count(messages, x)
+        data[f"d{x}_raw_count"] = count
+        all_dice = get_all_dice(messages)
+        dxs = [die for die in all_dice if die.is_dx(x)]
+        data[f"d{x}_raw_average"] = average_raw_roll(dxs)
     return data
 
 
@@ -614,7 +631,7 @@ def generate_data(messages: List[Message], user=None) -> Dict[str, Union[float, 
         | generate_save_data(d20_save_messages)
         | generate_ability_data(d20_ability_messages)
         | generate_skill_data(d20_skill_messages)
-        | generate_raw_die_counts(messages)
+        | generate_raw_die_stats(messages)
     )
 
 
@@ -685,7 +702,11 @@ def run(filenames: List[str], world_name: str, players: List[str]):
     field_metadata = {
         "d20_raw_count": {
             "pretty": "D20s Rolled",
-            "explanation": "Raw number of d20s rolled, including those dropped in rerolls"
+            "explanation": "Raw number of d20s rolled, including those dropped"
+        },
+        "d20_raw_average": {
+            "pretty": "Average Raw D20",
+            "explanation": "Average value of d20s rolled, including those dropped"
         },
         "d100_raw_count": {
             "pretty": "D100s Rolled",
@@ -696,14 +717,30 @@ def run(filenames: List[str], world_name: str, players: List[str]):
         "d10_raw_count": {
             "pretty": "D10s Rolled",
         },
+        "d10_raw_average": {
+            "pretty": "Average Raw D10",
+            "explanation": "Average value of d10s rolled, including those dropped"
+        },
         "d8_raw_count": {
             "pretty": "D8s Rolled",
+        },
+        "d8_raw_average": {
+            "pretty": "Average Raw D8",
+            "explanation": "Average value of d8s rolled, including those dropped"
         },
         "d6_raw_count": {
             "pretty": "D6s Rolled",
         },
+        "d6_raw_average": {
+            "pretty": "Average Raw D6",
+            "explanation": "Average value of d6s rolled, including those dropped"
+        },
         "d4_raw_count": {
             "pretty": "D4s Rolled",
+        },
+        "d4_raw_average": {
+            "pretty": "Average Raw D4",
+            "explanation": "Average value of d4s rolled, including those dropped"
         },
         "d347_raw_count": {
             "pretty": "D347s Rolled",

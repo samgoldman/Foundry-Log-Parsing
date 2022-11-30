@@ -71,46 +71,57 @@ d3.json(`${world}_data_v2.json`).then((data) => {
     table.append(body);
   });
 
-  let bar_data = [];
-  let bar_text = [];
-  users.forEach((user) => {
-    bar_data.push(data[user]["average_raw_d20_roll"]);
-    bar_text.push(`n=${data[user]["d20_raw_count"]}`);
-  });
-  let chart_data = [
-    {
-      x: users,
-      y: bar_data,
-      type: "bar",
-      text: bar_text,
-    },
-  ];
-  let layout = {
-    title: {
-      text: "Average Raw d20",
+  document.querySelectorAll(".bar_chart").forEach((chartDiv) => {
+    let field_base = chartDiv.dataset.field;
 
+    let bar_data = [];
+    let bar_text = [];
+    users.forEach((user) => {
+      bar_data.push(data[user][`${field_base}_average`]);
+      bar_text.push(`n=${data[user][`${field_base}_count`]}`);
+    });
+
+    let title = `${field_base}_average`;
+    if (data["field_metadata"][`${field_base}_average`] !== undefined) {
+      title = data["field_metadata"][`${field_base}_average`]["pretty"];
+    }
+
+    let chart_data = [
+      {
+        x: users,
+        y: bar_data,
+        type: "bar",
+        text: bar_text,
+      },
+    ];
+    let layout = {
+      title: {
+        text: title,
+        y: 1,
+        yref: "paper",
+        font: {
+          size: 30,
+        },
+      },
+      width: 960,
       font: {
-        size: 30,
+        family: "Courier New, monospace",
+        size: 16,
+        color: "#000",
       },
-    },
-    width: 960,
-    font: {
-      family: "Courier New, monospace",
-      size: 16,
-      color: "#000",
-    },
-    yaxis: {
-      tickfont: {
-        size: 24,
+      yaxis: {
+        tickfont: {
+          size: 24,
+        },
+        range: [d3.max([0, d3.min(bar_data) - 1]), d3.max(bar_data) + 1],
       },
-      range: [d3.min(bar_data) - 1, d3.max(bar_data) + 1],
-    },
-  };
-  let config = {
-    responsive: true,
-  };
-  // Populate graphs
-  Plotly.newPlot("average_raw_d20_bar", chart_data, layout, config);
+    };
+    let config = {
+      responsive: true,
+    };
+    // Populate graphs
+    Plotly.newPlot(chartDiv, chart_data, layout, config);
+  });
 
   const getCellValue = (tr, idx) => {
     let v = tr.children[idx].innerText || tr.children[idx].textContent;
