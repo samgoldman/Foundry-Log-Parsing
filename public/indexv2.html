@@ -29,22 +29,24 @@
     .heavy {
       font-weight: 1000;
     }
-
   </style>
 </head>
 <body>
   <div class="container-fluid">
-      <div class="row text-center">
-        <h1
-          class="centered display-1"
-          style="font-family: 'Tangerine', serif"
-          id="banner"
-        ></h1>
-      </div>
-      <div class="row text-center">
+    <div class="row text-center">
+      <h1
+        class="centered display-1"
+        style="font-family: 'Tangerine', serif"
+        id="banner"
+      ></h1>
+    </div>
+    <div class="row gy-5 text-center">
+      <div>
         <h1 class="light"><span class="heavy">1</span> GM</h1>
         <h1 class="light"><span class="heavy">4</span> Players</h1>
-        <h1 class="light"><span class="all_d20_raw_count heavy"></span> D20s Rolled</h1>
+        <h1 class="light">
+          <span class="all_d20_raw_count heavy"></span> D20s Rolled
+        </h1>
         <h1 class="text-success light">
           <span class="all_nat_20_count heavy"></span>
           Critical Successes
@@ -53,6 +55,13 @@
           <span class="all_nat_1_count heavy"></span>
           Critical Failures
         </h1>
+      </div>
+      <h1>So Many Dice!</h1>
+      <div class="table-responsive">
+        <table
+          class="data_table table table-sm table-striped table-hover sortable"
+          data-columns="d20_raw_count"
+        ></table>
       </div>
     </div>
   </div>

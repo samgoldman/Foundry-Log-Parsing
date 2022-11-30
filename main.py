@@ -667,9 +667,17 @@ def run(filenames: List[str], world_name: str, players: List[str]):
         print(f"./public/{world_name}_data.json")
         json.dump(d20_data, f, indent=4)
 
+    field_metadata = {
+        "d20_raw_count": {
+            "pretty": "D20s Rolled",
+            "explanation": "Raw number of d20s rolled, including those dropped in rerolls"
+        }
+    }
+
     v2_structure = {
         "world": world_name,
         "players": players,
+        "field_metadata": field_metadata,
     }
     for i in d20_data:
         v2_structure[i["player"]] = i
