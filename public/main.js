@@ -90,8 +90,8 @@ d3.queue()
   .await((error, d20_data) => {
     const column_name_map = {
       player: "Player",
-      roll_count: "D20 Rolls",
-      roll_count_prev: "D20s Last Session",
+      d20_roll_count: "D20 Rolls",
+      d20_roll_count_prev: "D20s Last Session",
       advantage_count: "Rolls with Advantage",
       disadvantage_count: "Rolls with Disadvantage",
       advantage_ratio: "% Advantage",
@@ -175,7 +175,7 @@ d3.queue()
     d20_data,
     [
       "player",
-      "roll_count",
+      "d20_roll_count",
       "advantage_count",
       "advantage_ratio",
       "disadvantage_count",
@@ -190,8 +190,8 @@ d3.queue()
     d20_data,
     [
       "player",
-      "roll_count",
-      "roll_count_prev",
+      "d20_roll_count",
+      "d20_roll_count_prev",
       "attack_roll_count",
       "attack_roll_count_prev",
       "saving_throw_count",
@@ -213,7 +213,7 @@ d3.queue()
     d20_data,
     [
       "player",
-      "roll_count",
+      "d20_roll_count",
       "attack_roll_ratio",
       "saving_throw_ratio",
       "ability_check_ratio",
@@ -229,7 +229,7 @@ d3.queue()
     d20_data,
     [
       "player",
-      "roll_count",
+      "d20_roll_count",
       "nat_20_count",
       "nat_20_count_prev",
       "nat_20_ratio",
@@ -258,7 +258,7 @@ d3.queue()
     d20_data,
     [
       "player",
-      "roll_count",
+      "d20_roll_count",
       "average_raw_d20_roll",
       "average_final_d20_roll",
       "average_d20_after_modifiers",

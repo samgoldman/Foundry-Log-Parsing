@@ -494,7 +494,7 @@ def generate_save_data(messages: List[Message]) -> Mapping[str, Union[float, str
     return data
 
 
-def generate_d20_data(messages: List[Message], user=None) -> Dict[str, Union[float, str]]:
+def generate_data(messages: List[Message], user=None) -> Dict[str, Union[float, str]]:
     if user == "All Players":
         messages = inverse_filter_user(messages, "Gamemaster")
     elif not user is None:
@@ -525,8 +525,8 @@ def generate_d20_data(messages: List[Message], user=None) -> Dict[str, Union[flo
 
     return (
         {
-            "raw_count": d20_count,
-            "roll_count": roll_count,
+            "d20_raw_count": d20_count,
+            "d20_roll_count": roll_count,
             "advantage_count": advantage_count,
             "disadvantage_count": disadvantage_count,
             "advantage_ratio": advantage_ratio,
@@ -623,13 +623,13 @@ def run(filenames: List[str], world_name: str, players: List[str]):
     messages = load_zip_files(filenames)
     messages = apply_april_fools_filter(messages)
 
-    all = generate_d20_data(messages, user=None)
+    all = generate_data(messages, user=None)
     all["player"] = "All"
     d20_data = [all]
 
     users = ["All Players", "Gamemaster"] + players
     for user in users:
-        user_data = generate_d20_data(messages, user=user)
+        user_data = generate_data(messages, user=user)
         user_data["player"] = user
         d20_data.append(user_data)
 
@@ -647,13 +647,13 @@ def run(filenames: List[str], world_name: str, players: List[str]):
     sessions = [s for s in sessions if s.count > 10]
 
     prev_session_messages = sessions[-1].messages
-    all = generate_d20_data(prev_session_messages, user=None)
+    all = generate_data(prev_session_messages, user=None)
     all["player"] = "All"
     d20_data_prev_session = [all]
 
     users = ["All Players", "Gamemaster"] + players
     for user in users:
-        user_data = generate_d20_data(prev_session_messages, user=user)
+        user_data = generate_data(prev_session_messages, user=user)
         user_data["player"] = user
         d20_data_prev_session.append(user_data)
 

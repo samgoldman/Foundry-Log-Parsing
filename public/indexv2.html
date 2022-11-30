@@ -3,8 +3,10 @@
 <head>
   <meta charset="utf-8" />
 
-  <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css?family=Tangerine">
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Tangerine"
+  />
 
   <!-- Load d3.js -->
   <script src="https://d3js.org/d3.v4.js"></script>
@@ -21,21 +23,39 @@
   ></script>
   <!-- Create a div where the graph will take place -->
   <style>
+    .light {
+      font-weight: 100;
+    }
+    .heavy {
+      font-weight: 1000;
+    }
+
   </style>
 </head>
 <body>
-    <div class="container">
+  <div class="container-fluid">
       <div class="row text-center">
-        <h1 class="centered display-1" style="font-family: 'Tangerine', serif" id="banner"></h1>
+        <h1
+          class="centered display-1"
+          style="font-family: 'Tangerine', serif"
+          id="banner"
+        ></h1>
       </div>
       <div class="row text-center">
-        <h1 style="font-weight: 100;"><span style="font-weight: 1000;">1</span> GM</h1>
-        <h1 style="font-weight: 100;"><span style="font-weight: 1000;">4</span> Players</h1>
-        <h1 style="font-weight: 100;"><span class="all_raw_count" style="font-weight: 1000;"></span> D20s Rolled</h1>
-        <h1 class="text-success" style="font-weight: 100;"><span class="all_nat_20_count" style="font-weight: 1000;"></span> Critical Successes</h1>
-        <h1 class="text-danger" style="font-weight: 100;"><span class="all_nat_1_count" style="font-weight: 1000;"></span> Critical Failures</h1>
+        <h1 class="light"><span class="heavy">1</span> GM</h1>
+        <h1 class="light"><span class="heavy">4</span> Players</h1>
+        <h1 class="light"><span class="all_d20_raw_count heavy"></span> D20s Rolled</h1>
+        <h1 class="text-success light">
+          <span class="all_nat_20_count heavy"></span>
+          Critical Successes
+        </h1>
+        <h1 class="text-danger light">
+          <span class="all_nat_1_count heavy"></span>
+          Critical Failures
+        </h1>
       </div>
     </div>
+  </div>
 
   <script src="indexv2.js"></script>
 </body>
