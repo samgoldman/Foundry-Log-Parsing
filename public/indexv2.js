@@ -20,9 +20,7 @@ function createCellWithAbbr(type, contents, title) {
   return cell;
 }
 
-d3.queue()
-  .defer(d3.json, `${world}_data_v2.json`)
-  .await((error, data) => {
+d3.json(`${world}_data_v2.json`).then((data) => {
     let users = ["All", "All Players", "Gamemaster"].concat(data["players"]);
     for (const [key, value] of Object.entries(data["All"])) {
       // Populate fields that define "all"
@@ -72,6 +70,30 @@ d3.queue()
       });
       table.append(body);
     });
+
+    let bar_data = [];
+    users.forEach((user) =>
+      bar_data.push(data[user]["average_raw_d20_roll"])
+    );
+    let chart_data = [
+      {
+        x: users,
+        y: bar_data,
+        type: 'bar'
+      }
+    ];
+    let layout = {
+      title: 'Average Raw d20',
+      width: 960,
+      yaxis: {
+        range: [d3.min(bar_data) - 1, d3.max(bar_data) + 1]
+      }
+    };
+    let config = {
+      responsive: true
+    };
+    // Populate graphs
+    Plotly.newPlot('average_raw_d20_bar', chart_data, layout, config);
 
     const getCellValue = (tr, idx) => {
       let v = tr.children[idx].innerText || tr.children[idx].textContent;
