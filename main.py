@@ -494,6 +494,21 @@ def generate_save_data(messages: List[Message]) -> Mapping[str, Union[float, str
     return data
 
 
+def get_dx_raw_count(messages: List[Message], x: int) -> int:
+    dice = get_all_dice(messages)
+    dxs = [die for die in dice if die.is_dx(x)]
+    return sum([die.number for die in dxs])
+
+
+def generate_raw_die_counts(messages: List[Message]) -> Mapping[str, Union[float, str]]:
+    dice = [347, 100, 20, 12, 10, 8, 6, 4]
+
+    data = {}
+    for x in dice:
+        data[f"d{x}_raw_count"] = get_dx_raw_count(messages, x)
+    return data
+
+
 def generate_data(messages: List[Message], user=None) -> Dict[str, Union[float, str]]:
     if user == "All Players":
         messages = inverse_filter_user(messages, "Gamemaster")
@@ -525,7 +540,6 @@ def generate_data(messages: List[Message], user=None) -> Dict[str, Union[float, 
 
     return (
         {
-            "d20_raw_count": d20_count,
             "d20_roll_count": roll_count,
             "advantage_count": advantage_count,
             "disadvantage_count": disadvantage_count,
@@ -600,6 +614,7 @@ def generate_data(messages: List[Message], user=None) -> Dict[str, Union[float, 
         | generate_save_data(d20_save_messages)
         | generate_ability_data(d20_ability_messages)
         | generate_skill_data(d20_skill_messages)
+        | generate_raw_die_counts(messages)
     )
 
 
@@ -671,6 +686,27 @@ def run(filenames: List[str], world_name: str, players: List[str]):
         "d20_raw_count": {
             "pretty": "D20s Rolled",
             "explanation": "Raw number of d20s rolled, including those dropped in rerolls"
+        },
+        "d100_raw_count": {
+            "pretty": "D100s Rolled",
+        },
+        "d12_raw_count": {
+            "pretty": "D12s Rolled",
+        },
+        "d10_raw_count": {
+            "pretty": "D10s Rolled",
+        },
+        "d8_raw_count": {
+            "pretty": "D8s Rolled",
+        },
+        "d6_raw_count": {
+            "pretty": "D6s Rolled",
+        },
+        "d4_raw_count": {
+            "pretty": "D4s Rolled",
+        },
+        "d347_raw_count": {
+            "pretty": "D347s Rolled",
         }
     }
 
