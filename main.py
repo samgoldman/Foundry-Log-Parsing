@@ -31,6 +31,8 @@ class Die(object):
             else:
                 self.inactive_results.append(r["result"])
 
+        assert(self.number == (len(self.active_results) + len(self.inactive_results)))
+
         if "advantage" in self.options and self.options["advantage"]:
             self.advantage = True
         if "disadvantage" in self.options and self.options["disadvantage"]:
@@ -388,24 +390,11 @@ def inverse_filter_user(messages: List[Message], user: str) -> List[Message]:
     return list(filter(lambda message: message.user != user, messages))
 
 
-def average_raw_d20_roll(dice: List[Die]) -> float:
-    all_active = [die.active_results[0] for die in dice]
-    all_inactive = [
-        die.inactive_results[0] for die in dice if len(die.inactive_results) > 0
-    ]
-    all = all_active + all_inactive
-    total_value = sum(all)
-    count = len(all)
-    if count == 0:
-        return 0
-    return total_value / count
-
-
 def average_raw_roll(dice: List[Die]) -> float:
-    all_active = [die.active_results[0] for die in dice]
-    all_inactive = [
-        die.inactive_results[0] for die in dice if len(die.inactive_results) > 0
-    ]
+    all_active = flatten([die.active_results for die in dice])
+    all_inactive = flatten([
+        die.inactive_results for die in dice
+    ])
     all = all_active + all_inactive
     total_value = sum(all)
     count = len(all)
@@ -510,7 +499,14 @@ def generate_save_data(messages: List[Message]) -> Mapping[str, Union[float, str
 def get_dx_raw_count(messages: List[Message], x: int) -> int:
     dice = get_all_dice(messages)
     dxs = [die for die in dice if die.is_dx(x)]
-    return sum([die.number for die in dxs])
+    all_active = flatten([die.active_results for die in dxs])
+    all_inactive = flatten([
+        die.inactive_results for die in dxs
+    ])
+    all = all_active + all_inactive
+    count = len(all)
+
+    return count
 
 
 def generate_raw_die_stats(messages: List[Message]) -> Mapping[str, Union[float, str]]:
@@ -596,7 +592,7 @@ def generate_data(messages: List[Message], user=None) -> Dict[str, Union[float, 
             "advantage_nat_1_count": len(
                 [die for die in d20s if die.is_advantage_nat_1()]
             ),
-            "average_raw_d20_roll": average_raw_d20_roll(d20s),
+            "average_raw_d20_roll": average_raw_roll(d20s),
             "average_final_d20_roll": average_final_d20_roll(d20_messages),
             "average_d20_after_modifiers": average_d20_after_modifiers(d20_messages),
             "average_attack_before_modifiers": average_final_d20_roll(
@@ -704,6 +700,10 @@ def run(filenames: List[str], world_name: str, players: List[str]):
             "pretty": "D20s Rolled",
             "explanation": "Raw number of d20s rolled, including those dropped"
         },
+        "d20_roll_count": {
+            "pretty": "D20 Rolls",
+            "explanation": "The number of rolls that include a d20"
+        },
         "d20_raw_average": {
             "pretty": "Average Raw D20",
             "explanation": "Average value of d20s rolled, including those dropped"
@@ -744,6 +744,41 @@ def run(filenames: List[str], world_name: str, players: List[str]):
         },
         "d347_raw_count": {
             "pretty": "D347s Rolled",
+        },
+        "attack_roll_ratio": {
+            "pretty": "% Attacks",
+            "is_percent": True,
+        },
+        "saving_throw_ratio": {
+            "pretty": "% Saves",
+            "is_percent": True,
+        },
+        "ability_check_ratio": {
+            "pretty": "% Ability Checks",
+            "is_percent": True,
+        },
+        "skill_check_ratio": {
+            "pretty": "% Skill Checks",
+            "is_percent": True,
+        },
+        "initiative_roll_ratio": {
+            "pretty": "% Init Rolls",
+            "is_percent": True,
+        },
+        "attack_roll_count": {
+            "pretty": "# Attacks",
+        },
+        "saving_throw_count": {
+            "pretty": "# Saves",
+        },
+        "ability_check_count": {
+            "pretty": "# Ability Checks",
+        },
+        "skill_check_count": {
+            "pretty": "# Skill Checks",
+        },
+        "initiative_roll_count": {
+            "pretty": "# Init Rolls",
         }
     }
 

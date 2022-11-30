@@ -3,6 +3,11 @@ if (window.location.hash !== undefined && window.location.hash.length > 1) {
   world = window.location.hash.slice(1);
 }
 
+const formatter = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
 let world_cap = world.charAt(0).toUpperCase() + world.slice(1);
 document.querySelector("#banner").textContent = `${world_cap} Statistics`;
 
@@ -63,7 +68,11 @@ d3.json(`${world}_data_v2.json`).then((data) => {
       row.appendChild(createCell("th", user));
 
       columns.forEach((c) => {
-        row.appendChild(createCell("th", data[user][c]));
+        if (data["field_metadata"][c] !== undefined && data["field_metadata"][c]["is_percent"] === true) {
+          row.appendChild(createCell("th", formatter.format(data[user][c] * 100) + "%"))
+        } else {
+          row.appendChild(createCell("th", data[user][c]));
+        }
       });
 
       body.append(row);
