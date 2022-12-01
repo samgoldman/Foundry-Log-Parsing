@@ -68,8 +68,13 @@ d3.json(`${world}_data_v2.json`).then((data) => {
       row.appendChild(createCell("th", user));
 
       columns.forEach((c) => {
-        if (data["field_metadata"][c] !== undefined && data["field_metadata"][c]["is_percent"] === true) {
-          row.appendChild(createCell("th", formatter.format(data[user][c] * 100) + "%"))
+        if (
+          data["field_metadata"][c] !== undefined &&
+          data["field_metadata"][c]["is_percent"] === true
+        ) {
+          row.appendChild(
+            createCell("th", formatter.format(data[user][c] * 100) + "%")
+          );
         } else {
           row.appendChild(createCell("th", data[user][c]));
         }
@@ -81,28 +86,67 @@ d3.json(`${world}_data_v2.json`).then((data) => {
   });
 
   document.querySelectorAll(".bar_chart").forEach((chartDiv) => {
-    let field_base = chartDiv.dataset.field;
-
-    let bar_data = [];
-    let bar_text = [];
-    users.forEach((user) => {
-      bar_data.push(data[user][`${field_base}_average`]);
-      bar_text.push(`n=${data[user][`${field_base}_count`]}`);
-    });
-
-    let title = `${field_base}_average`;
-    if (data["field_metadata"][`${field_base}_average`] !== undefined) {
-      title = data["field_metadata"][`${field_base}_average`]["pretty"];
+    let chart_data = [];
+    let fields = chartDiv.dataset.field.split(" ");
+    let colors = undefined;
+    if (chartDiv.dataset.colors !== undefined) {
+      colors = chartDiv.dataset.colors.split(" ");
     }
 
-    let chart_data = [
-      {
+    let min = 999999999;
+    let max = 0;
+
+    let i = 0;
+    fields.forEach((field) => {
+      let bar_data = [];
+      let bar_text = [];
+      let field_base = field.split("_").slice(0, -1).join("_")
+      users.forEach((user) => {
+        bar_data.push(data[user][field]);
+        bar_text.push(`n=${data[user][`${field_base}_count`]}`);
+      });
+
+      min = d3.max([0, d3.min([d3.min(bar_data), min])]);
+      max = d3.max([d3.max(bar_data), max]);
+
+      if (chartDiv.dataset.zeroIsZero !== undefined) {
+        min = 0;
+      }
+
+      let marker = {};
+      if (colors !== undefined) {
+        marker = {
+          color: colors[i]
+        }
+      }
+
+      chart_data.push({
         x: users,
         y: bar_data,
         type: "bar",
+        marker: marker,
         text: bar_text,
-      },
-    ];
+        name: data["field_metadata"][field]["pretty"],
+      });
+      i += 1;
+    });
+
+    min -= min*.1;
+    max += max*.1;
+
+    let title = chartDiv.dataset.title;
+
+    if (title === undefined) {
+      if (data["field_metadata"][fields[0]] !== undefined) {
+        title = data["field_metadata"][fields[0]]["pretty"];
+      }
+    }
+
+    let ytick_format = "";
+    if (data["field_metadata"][fields[0]]["is_percent"]) {
+      ytick_format = ".0%";
+    }
+
     let layout = {
       title: {
         text: title,
@@ -122,7 +166,8 @@ d3.json(`${world}_data_v2.json`).then((data) => {
         tickfont: {
           size: 24,
         },
-        range: [d3.max([0, d3.min(bar_data) - 1]), d3.max(bar_data) + 1],
+        tickformat: ytick_format,
+        range: [min, max],
       },
     };
     let config = {

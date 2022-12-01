@@ -46,17 +46,18 @@
         <h1 class="light"><span class="heavy">1</span> GM</h1>
         <h1 class="light"><span class="heavy">4</span> Players</h1>
         <h1 class="light">
-          <span class="all_d20_raw_count heavy"></span> (+<span class="all_d20_raw_count_prev"></span>) D20s Rolled
+          <span class="all_d20_raw_count heavy"></span> (+<span
+            class="all_d20_raw_count_prev"
+          ></span
+          >) D20s Rolled
         </h1>
         <h1 class="text-success light">
           <span class="all_nat_20_count heavy"></span>
-          (+<span class="all_nat_20_count_prev"></span>)
-          Critical Successes
+          (+<span class="all_nat_20_count_prev"></span>) Critical Successes
         </h1>
         <h1 class="text-danger light">
           <span class="all_nat_1_count heavy"></span>
-          (+<span class="all_nat_1_count_prev"></span>)
-          Critical Failures
+          (+<span class="all_nat_1_count_prev"></span>) Critical Failures
         </h1>
       </div>
       <div>
@@ -73,27 +74,27 @@
         <div
           style="display: flex; align-items: center; justify-content: center"
           class="bar_chart"
-          data-field="d20_raw"
+          data-field="d20_raw_average"
         ></div>
         <div
           style="display: flex; align-items: center; justify-content: center"
           class="bar_chart"
-          data-field="d10_raw"
+          data-field="d10_raw_average"
         ></div>
         <div
           style="display: flex; align-items: center; justify-content: center"
           class="bar_chart"
-          data-field="d8_raw"
+          data-field="d8_raw_average"
         ></div>
         <div
           style="display: flex; align-items: center; justify-content: center"
           class="bar_chart"
-          data-field="d6_raw"
+          data-field="d6_raw_average"
         ></div>
         <div
           style="display: flex; align-items: center; justify-content: center"
           class="bar_chart"
-          data-field="d4_raw"
+          data-field="d4_raw_average"
         ></div>
       </div>
       <div>
@@ -107,21 +108,34 @@
         </div>
       </div>
       <div>
-        <h2 class="text-success">Natural 20s</h2>
-        <div class="table-responsive">
-          <table
-            class="data_table table table-sm table-striped table-hover sortable"
-            data-columns="d20_roll_count nat_20_count nat_20_ratio stolen_nat_20_count super_nat_20_count disadvantage_nat_20_count"
-          ></table>
+        <h1>The Extremities</h1>
+        <div>
+          <h2 class="text-success">Natural 20s</h2>
+          <div class="table-responsive">
+            <table
+              class="data_table table table-sm table-striped table-hover sortable"
+              data-columns="d20_roll_count nat_20_count nat_20_ratio stolen_nat_20_count super_nat_20_count disadvantage_nat_20_count"
+            ></table>
+          </div>
         </div>
-      </div>
-      <div>
-        <h2 class="text-danger">Natural 1s</h2>
-        <div class="table-responsive">
-          <table
-            class="data_table table table-sm table-striped table-hover sortable"
-            data-columns="d20_roll_count nat_1_count nat_1_ratio dropped_nat_1_count super_nat_1_count advantage_nat_1_count"
-          ></table>
+        <div>
+          <h2 class="text-danger">Natural 1s</h2>
+          <div class="table-responsive">
+            <table
+              class="data_table table table-sm table-striped table-hover sortable"
+              data-columns="d20_roll_count nat_1_count nat_1_ratio dropped_nat_1_count super_nat_1_count advantage_nat_1_count"
+            ></table>
+          </div>
+        </div>
+        <div>
+          <div
+            style="display: flex; align-items: center; justify-content: center"
+            class="bar_chart"
+            data-field="nat_20_ratio nat_1_ratio"
+            data-colors="#198754 #dc3545"
+            data-title="% Crits"
+            data-zero-is-zero
+          ></div>
         </div>
       </div>
       <div></div>
