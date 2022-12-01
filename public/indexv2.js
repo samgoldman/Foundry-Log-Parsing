@@ -1,6 +1,6 @@
 let world = "salocaia";
-if (window.location.hash !== undefined && window.location.hash.length > 1) {
-  world = window.location.hash.slice(1);
+if (window.location.search !== undefined && window.location.search.length > 1) {
+  world = window.location.search.slice(1);
 }
 
 const formatter = new Intl.NumberFormat("en-US", {
