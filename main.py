@@ -779,7 +779,49 @@ def run(filenames: List[str], world_name: str, players: List[str]):
         },
         "initiative_roll_count": {
             "pretty": "# Init Rolls",
-        }
+        },
+        "nat_20_count": {
+            "pretty": "# Nat 20s",
+            "explanation": "After advantage or disadvantage, was the number on the die a 20?"
+        },
+        "nat_20_ratio": {
+            "pretty": "% Nat 20s",
+            "explanation": "After advantage or disadvantage, was the number on the die a 20?",
+            "is_percent": True,
+        },
+        "stolen_nat_20_count": {
+            "pretty": "Stolen Nat 20s",
+            "explanation": "Number of times that a natural 20 was lost to disadvantage",
+        },
+        "super_nat_20_count": {
+            "pretty": "Super Nat 20s",
+            "explanation": "Number of times that with advantage, both dice were 20s",
+        },
+        "disadvantage_nat_20_count": {
+            "pretty": "Disadvantage Nat 20s",
+            "explanation": "Number of times that with even with disadvantage, the result was a 20",
+        },
+        "nat_1_count": {
+            "pretty": "# Nat 1s",
+            "explanation": "After advantage or disadvantage, was the number on the die a 1?"
+        },
+        "nat_1_ratio": {
+            "pretty": "% Nat 1s",
+            "explanation": "After advantage or disadvantage, was the number on the die a 1?",
+            "is_percent": True,
+        },
+        "dropped_nat_1_count": {
+            "pretty": "Dropped Nat 1s",
+            "explanation": "Number of times that a natural 1 was avoided because of advantage",
+        },
+        "super_nat_1_count": {
+            "pretty": "Super Nat 1s",
+            "explanation": "Number of times that with disadvantage, both dice were 1s",
+        },
+        "advantage_nat_1_count": {
+            "pretty": "Advantage Nat 1s",
+            "explanation": "Number of times that with even with advantage, the result was a 1 (oof)",
+        },
     }
 
     v2_structure = {
