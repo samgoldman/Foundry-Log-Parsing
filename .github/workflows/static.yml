@@ -53,6 +53,14 @@ jobs:
       - run: python main.py salocaia ./Forge*.zip ./salocaia/world_backups/*.zip threshprince OneRandomThing Igazsag teagold
       - run: rm ./Forge*.zip
 
+      - uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 3
+          max_attempts: 3
+          command: python download_zip.py ${{ secrets.VORALUS_FORGE_EMAIL }} ${{ secrets.VORALUS_FORGE_PASSWORD }}
+      - run: python main.py voralus ./Forge*.zip Alex Parker Sam Talya
+      - run: rm ./Forge*.zip
+
       - name: Setup Pages
         uses: actions/configure-pages@v2
       - name: Upload artifact
