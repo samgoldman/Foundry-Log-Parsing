@@ -44,14 +44,14 @@ jobs:
         with:
           python-version: '3.10'
           cache: 'pip' # caching pip dependencies
-      - run: pip install -r requirements.txt
-      - uses: nick-fields/retry@v2
-        with:
-          timeout_minutes: 3
-          max_attempts: 3
-          command: python download_zip.py ${{ secrets.FORGE_EMAIL }} ${{ secrets.FORGE_PASSWORD }}
-      - run: python main.py salocaia ./Forge*.zip ./salocaia/world_backups/*.zip threshprince OneRandomThing Igazsag teagold
-      - run: rm ./Forge*.zip
+      # - run: pip install -r requirements.txt
+      # - uses: nick-fields/retry@v2
+      #   with:
+      #     timeout_minutes: 3
+      #     max_attempts: 3
+      #     command: python download_zip.py ${{ secrets.FORGE_EMAIL }} ${{ secrets.FORGE_PASSWORD }}
+      # - run: python main.py salocaia ./Forge*.zip ./salocaia/world_backups/*.zip threshprince OneRandomThing Igazsag teagold
+      # - run: rm ./Forge*.zip
 
       - uses: nick-fields/retry@v2
         with:
