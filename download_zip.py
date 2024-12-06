@@ -31,6 +31,7 @@ driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
 
 driver.get("https://forge-vtt.com/account/login")
 print(driver.title)
+time.sleep(1)
 driver.find_element(By.ID, '__BVID__11').send_keys(email)
 time.sleep(1)
 driver.find_element(By.ID, '__BVID__13').send_keys(password)
