@@ -1,3 +1,4 @@
+from random import randint
 import sys
 import time
 
@@ -33,8 +34,13 @@ print(driver.title)
 driver.find_element(By.ID, '__BVID__11').send_keys(email)
 time.sleep(1)
 driver.find_element(By.ID, '__BVID__13').send_keys(password)
+time.sleep(20)
+driver.find_elements(By.CLASS_NAME, 'custom-control-label')[randint(0, 2)].click()
 time.sleep(1)
-driver.find_element(By.CSS_SELECTOR, '#__BVID__15 > div:nth-child(1) > button:nth-child(1)').click()
+for element in driver.find_elements(By.CLASS_NAME, 'btn-primary'):
+    if element.text == 'Sign In':
+        element.click()
+        break
 time.sleep(5)
 driver.get('https://forge-vtt.com/setup#itreachesout')
 time.sleep(5)
@@ -42,5 +48,6 @@ time.sleep(5)
 
 driver.find_element(By.CSS_SELECTOR, 'div.border:nth-child(2) > div:nth-child(2) > div:nth-child(3) > button:nth-child(1)').click()
 time.sleep(3)
-driver.find_element(By.CSS_SELECTOR, '.list-group-item').click()
+driver.save_screenshot('dialog.png')
+driver.find_element(By.CSS_SELECTOR, '.fa-cloud-download-alt').click()
 time.sleep(30)
