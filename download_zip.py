@@ -42,13 +42,13 @@ for element in driver.find_elements(By.CLASS_NAME, 'btn-primary'):
     if element.text == 'Sign In':
         element.click()
         break
-time.sleep(5)
+time.sleep(10)
 driver.get('https://forge-vtt.com/setup#itreachesout')
-time.sleep(5)
+time.sleep(10)
 
 
 driver.find_element(By.CSS_SELECTOR, 'div.border:nth-child(2) > div:nth-child(2) > div:nth-child(3) > button:nth-child(1)').click()
-time.sleep(3)
+time.sleep(10)
 driver.save_screenshot('dialog.png')
 driver.find_element(By.CSS_SELECTOR, '.fa-cloud-download-alt').click()
-time.sleep(30)
+time.sleep(60)
